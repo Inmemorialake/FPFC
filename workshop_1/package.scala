@@ -1,31 +1,28 @@
 package object FuncionesRecursivas {
 
-  def maxLin(l: List[Int]): Int = l match {
-    case Nil => throw new IllegalArgumentException("La lista no puede estar vacía")
-    case x :: Nil => x
-    case x :: xs =>
-      val maxTail = maxLin(xs)      
-      if (x > maxTail) x else maxTail
+  def maxLin(l: List[Int]): Int = {
+    def intMax(x: Int, y: Int) =
+      if (x >= y) x else y
+    if (l.tail.isEmpty) l.head else intMax(l.head, maxLin(l.tail))
   }
 
   def maxIt(l: List[Int]): Int = {
-    if (l.isEmpty) throw new IllegalArgumentException("La lista no puede estar vacía")
-    var maxActual = l.head
-    for (elem <- l.tail) {
-      if (elem > maxActual) {
-        maxActual = elem
+    def iter(remaining: List[Int], currentMax: Int): Int = {
+      if (remaining.isEmpty) currentMax
+      else {
+        val newMax = if (remaining.head > currentMax) remaining.head else currentMax
+        iter(remaining.tail, newMax)
       }
     }
-    maxActual
+    iter(l.tail, l.head)
   }
 
   def movsTorresHanoi(n: Int): BigInt = {
-    if (n < 1) throw new IllegalArgumentException("El número de discos debe ser positivo")
-    BigInt(2).pow(n) - 1
+    if (n == 1) 1
+    else 2 * movsTorresHanoi(n - 1) + 1
   }
 
   def torresHanoi(n: Int, t1: Int, t2: Int, t3: Int): List[(Int, Int)] = {
-    if (n < 1) throw new IllegalArgumentException("El número de discos debe ser positivo")
     if (n == 1) {
       List((t1, t3))
     } else {
