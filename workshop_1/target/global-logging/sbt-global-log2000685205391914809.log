@@ -10,9 +10,9 @@
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(onFailure loadFailed, None, None)[0m
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(loadp, None, None)[0m
 [0m[[0m[0minfo[0m] [0m[0mwelcome to sbt 1.8.2 (Amazon.com Inc. Java 1.8.0_372)[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.defaultLoad until apply took 90.186572ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: plugins took 89.597982ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: defsScala took 0.463145ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.defaultLoad until apply took 106.599385ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: plugins took 109.57322ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: defsScala took 0.563182ms[0m
 [0m[[0m[0mdebug[0m] [0m[0m[Loading] Scanning directory /app/workshop_1[0m
 [0m[[0m[0mdebug[0m] [0m[0m[Loading] Found non-root projects [0m
 [0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /app/workshop_1, returning: ()[0m
@@ -29,20 +29,20 @@
 [0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.CorePlugin),Set(Atom(sbt.plugins.Giter8TemplatePlugin)))[0m
 [0m[[0m[0mdebug[0m] [0m[0mClause(Atom(sbt.plugins.JvmPlugin),Set(Atom(sbt.plugins.MiniDependencyTreePlugin))))[0m
 [0m[[0m[0mdebug[0m] [0m[0m  :: deduced result: Matched(sbt.plugins.CorePlugin,sbt.plugins.Giter8TemplatePlugin,sbt.plugins.IvyPlugin,sbt.plugins.JvmPlugin,sbt.plugins.MiniDependencyTreePlugin,sbt.plugins.JUnitXmlReportPlugin,sbt.plugins.SemanticdbPlugin)[0m
-[0m[[0m[0mdebug[0m] [0m[0mPlugins.deducer#function took 25.46549 ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m        Load.resolveProject(workshop_1) took 68.024014ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m      Load.loadTransitive: finalizeProject(Project(id workshop_1, base: /app/workshop_1, plugins: List(<none>))) took 129.772563ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mPlugins.deducer#function took 23.490292 ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m        Load.resolveProject(workshop_1) took 63.416927ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m      Load.loadTransitive: finalizeProject(Project(id workshop_1, base: /app/workshop_1, plugins: List(<none>))) took 123.816676ms[0m
 [0m[[0m[0mdebug[0m] [0m[0m[Loading] Done in /app/workshop_1, returning: (workshop_1)[0m
-[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: loadedProjectsRaw took 157.840469ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: cleanEvalClasses took 0.388302ms[0m
-[0m[[0m[0mdebug[0m] [0m[0m  Load.loadUnit(file:/app/workshop_1/, ...) took 256.985498ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: load took 648.639979ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: resolveProjects took 10.129644ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: finalTransforms took 86.815109ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: config.delegates took 11.231215ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: Def.make(settings)... took 502.760032ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: structureIndex took 152.882776ms[0m
-[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: mkStreams took 2.623161ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: loadedProjectsRaw took 151.511121ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m    Load.loadUnit: cleanEvalClasses took 0.40489ms[0m
+[0m[[0m[0mdebug[0m] [0m[0m  Load.loadUnit(file:/app/workshop_1/, ...) took 272.194557ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: load took 665.218207ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: resolveProjects took 17.091272ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: finalTransforms took 91.704287ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: config.delegates took 10.525643ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: Def.make(settings)... took 522.873924ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: structureIndex took 154.044694ms[0m
+[0m[[0m[0mdebug[0m] [0m[0mLoad.apply: mkStreams took 2.383398ms[0m
 [0m[[0m[0minfo[0m] [0m[0mset current project to workshop_1 (in build file:/app/workshop_1/)[0m
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(sbtPopOnFailure, None, None)[0m
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(resumeFromFailure, None, None)[0m
@@ -51,21 +51,5 @@
 [0m[[0m[0mdebug[0m] [0m[0m> Exec(console, None, None)[0m
 [0m[[0m[0mdebug[0m] [0m[0mEvaluating tasks: Compile / console[0m
 [0m[[0m[0mdebug[0m] [0m[0mRunning task... Cancel: Signal, check cycles: false, forcegc: true[0m
+[0m[[0m[0minfo[0m] [0m[0mcompiling 1 Scala source to /app/workshop_1/target/scala-2.12/classes ...[0m
 [0m[[0m[0minfo[0m] [0m[0mStarting scala interpreter...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[0mdebug[0m] [0m[0mForcing garbage collection...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
-[0m[[0m[33mwarn[0m] [0m[0mCanceling execution...[0m
