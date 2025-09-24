@@ -1,7 +1,7 @@
 # Taller 1 – Recursión
 
 **Curso:** Fundamentos de Programación Funcional y Concurrente  
-**Tema:** Procesos recursivos e iterativos  
+**Tema:** Procesos recursivos e iterativos
 **Estudiantes:**
 
 - Jorge Luis Junior Lasprilla Prada - 2420662
