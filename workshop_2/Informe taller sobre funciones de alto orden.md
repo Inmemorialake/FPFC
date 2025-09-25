@@ -1,7 +1,7 @@
 # Informe Taller 2 – Funciones de Alto Orden
 
-> **Curso:** Fundamentos de Programación Funcional y Concurrente  
-**Tema:** Funciones de alto orden
+>**Curso:** Fundamentos de Programación Funcional y Concurrente  
+>**Tema:** Funciones de alto orden
 
 **Estudiantes:**
 
@@ -24,44 +24,183 @@
 
 ## 2. Informe de corrección
 
-### 2.1 `insert(e, l, comp)` — Esquema de argumentación (inductiva)
+Sea $comp : A \times A \to \{\text{true}, \text{false}\}$.  
+Definimos el orden inducido por el comparador como:
 
-1. **Propiedad a probar:** `insert(e, l, comp)` devuelve una pareja `(l', c)` tal que `l'` es la lista `l` con `e` insertado preservando el orden según `comp`, y `c` es el número exacto de llamadas a `comp` realizadas.
-2. **Caso base (l = Nil):**
-   - Se devuelve `(List(e), 0)`. No se hizo ninguna comparación → cumple propiedad.
-3. **Paso inductivo (l = head :: tail):**
-   - Se evalúa `comp(e, head)` (una comparación).
-   - Si `true` → `e` se coloca delante de `head`; `c = 1`. Invariante satisfecha.
-   - Si `false` → se aplica `insert(e, tail, comp)` y por hipótesis la recursión devuelve `(tail', c_tail)` correcta; la devolución final es `(head :: tail', c_tail + 1)`; la suma de comparaciones coincide con la definición.
-4. **Conclusión:** por inducción, la función es correcta y el contador es exacto.
+$$
+x \leq_{comp} y \iff comp(x,y) = \text{true}.
+$$
 
-### 2.2 `insertionSort(comp)` — Esquema de argumentación
+Decimos que una lista $l'$ es una **permutación** de otra lista $l$, y escribimos $l' \sim l$, si $l'$ contiene exactamente los mismos elementos que $l$.
 
-1. **Propiedad:** La función devuelta ordena la lista según `comp` y reporta el número total de comparaciones realizadas.
-2. **Idea:** recursión/recorrido que inserta elemento a elemento en la lista acumuladora ordenada.
-3. **Caso base:** lista vacía → `(List(), 0)` cumple.
-4. **Paso inductivo:** al insertar `head` en la solución ordenada parcial se garantiza (por corrección de `insert`) que la nueva acumulación está ordenada, y se acumulan correctamente las comparaciones (`acc._2 + insertedCount`).
-5. **Conclusión:** por inducción estructural sobre la lista de entrada, el algoritmo produce la lista ordenada correcta y contabiliza las comparaciones exactas.
+---
 
-### 2.3 `menoresQueNoMenoresQue(l, v, comp)` — Esquema de argumentación
+### Lema 1. Correctitud de `insert`
 
-1. **Propiedad:** Devuelve `(l1, l2, c)` donde `l1` contiene los elementos de `l` menores que `v` (en el **mismo orden** relativo que en `l`), `l2` el resto, y `c = |l|` (cada elemento se comparó exactamente una vez con `v`).
-2. **Prueba:** recorrido recursivo; acumuladores con `reverse` mantienen orden original; `count` suma 1 por elemento.
-3. **Conclusión:** función correcta y contador exacto.
+**Enunciado:**  
+Sea $e \in A$ y $l$ una lista ordenada según $\leq_{comp}$. Entonces:
 
-### 2.4 `quickSort(comp)` — Esquema de argumentación
+$$
+insert(e, l, comp) = (l', k)
+$$
 
-1. **Propiedad:** Devuelve una lista ordenada (según `comp`) y el número de comparaciones (suma de las realizadas en particiones y recursiones).
-2. **Base:** lista vacía o de un elemento → `(lista, 0)`.
-3. **Paso inductivo:** elegir pivote = `head`, particionar el resto (correcto por `menoresQueNoMenoresQue`), ordenar recursivamente sublistas y concatenar.
-4. **Correctitud de orden:** todos los elementos de la lista resultante cumplen las relaciones `<=` entre particiones por construcción.
-5. **Conclusión:** por inducción estructural en la longitud de la lista, `quickSort` es correcto; el contador suma correctamente las comparaciones por nivel.
+donde $l'$ está ordenada, $l' \sim (e :: l)$ y $k$ corresponde al número exacto de comparaciones realizadas.
 
-### 2.5 `comparar(a1, a2, l)` — Esquema de argumentación
+**Demostración:**
 
-1. **Propiedad:** Si `a1(l)._1 == a2(l)._1` devuelve `(c1,c2)` contadores; si no, `(-1,-1)`.
-2. **Justificación:** aplica funciones como valores; compara resultados estructurales de las listas.
-3. **Conclusión:** cumple la especificación.
+- **Caso base ($l = []$):**  
+  $insert(e, [], comp) = ([e], 0)$.  
+  $[e]$ está ordenada, $[e] \sim (e :: [])$ y $k=0$.
+
+- **Caso inductivo ($l = h :: t$):**  
+  Se evalúa $comp(e,h)$ (una comparación).  
+  - Si $e \leq_{comp} h$:  
+    $$
+    insert(e, h::t, comp) = (e::h::t, 1)
+    $$
+    que está ordenada y es permutación de $e::h::t$.
+  - Si $e \not\leq_{comp} h$:  
+    Por hipótesis inductiva,  
+    $$
+    insert(e, t, comp) = (t', c), \quad t' \sim (e::t).
+    $$  
+    Entonces,  
+    $$
+    insert(e, h::t, comp) = (h::t', c+1), \quad (h::t') \sim (e::h::t).
+    $$
+
+En ambos casos se cumple la propiedad.
+$Q.E.D.$
+
+---
+
+### Teorema 1. Correctitud de `insertionSort`
+
+**Enunciado:**  
+Para toda lista $l$:
+
+$$
+insertionSort(comp)(l) = (l', k)
+$$
+
+donde $l'$ está ordenada según $\leq_{comp}$, $l' \sim l$, y $k$ es el número total de comparaciones.
+
+**Demostración:**
+
+- **Caso base ($l = []$):**  
+  $( [], 0 )$, que está ordenada y es permutación trivial.
+
+- **Caso inductivo ($l = h :: t$):**  
+  Por hipótesis inductiva:  
+  $$
+  insertionSort(comp)(t) = (t', k_t), \quad t' \sim t.
+  $$  
+  Luego, por el Lema 1:  
+  $$
+  insert(h, t', comp) = (t'', k_h), \quad t'' \sim (h::t').
+  $$  
+  Entonces $t'' \sim l$ y el número total de comparaciones es $k_t + k_h$.
+
+Por inducción, la función es correcta.
+$Q.E.D.$
+
+---
+
+### Lema 2. Correctitud de `menoresQueNoMenoresQue`
+
+**Enunciado:**  
+Para toda lista $l$ y pivote $v$:
+
+$$
+menoresQueNoMenoresQue(l, v, comp) = (l_1, l_2, k)
+$$
+
+donde:
+
+1. $l_1 = \{\, x \in l \mid x \leq_{comp} v \,\}$  
+2. $l_2 = \{\, x \in l \mid \neg(x \leq_{comp} v) \,\}$  
+3. $l_1 \cup l_2 \sim l$  
+4. $k = |l|$
+
+**Demostración:**
+
+- **Caso base ($l = []$):**  
+  $([], [], 0)$, que cumple todas las condiciones.
+
+- **Caso inductivo ($l = h :: t$):**  
+  Se compara $h$ con $v$:  
+  - Si $h \leq_{comp} v$, se añade $h$ a $l_1$.  
+  - Si no, se añade a $l_2$.  
+
+Por hipótesis inductiva, la partición de $t$ es correcta y se cuentan $|t|$ comparaciones.  
+Sumando la de $h$, se obtiene $k = |l|$.  
+
+La unión $l_1 \cup l_2 \sim l$, así que el lema queda demostrado.
+$Q.E.D.$
+
+---
+
+### Teorema 2. Correctitud de `quickSort`
+
+**Enunciado:**  
+Para toda lista $l$:
+
+$$
+quickSort(comp)(l) = (l', k)
+$$
+
+donde $l'$ está ordenada según $\leq_{comp}$, $l' \sim l$, y $k$ es el número total de comparaciones.
+
+**Demostración:**
+
+- **Caso base:**  
+  Si $l = []$ o $|l|=1$, entonces $(l, 0)$, que ya está ordenada y es permutación de sí misma.
+
+- **Caso inductivo ($l = h :: t$):**  
+  Sea $menoresQueNoMenoresQue(t,h,comp) = (l_1,l_2,k_p)$.  
+  Por el Lema 2, $l_1 \cup l_2 \sim t$.  
+  Además, $\forall x \in l_1,\, x \leq_{comp} h$ y $\forall y \in l_2,\, \neg(y \leq_{comp} h)$.  
+
+Aplicando la hipótesis inductiva a $quickSort(l_1)$ y $quickSort(l_2)$ se obtienen $l_1'$ y $l_2'$ ordenadas y permutaciones de sus entradas.  
+
+La concatenación:  
+$$
+l' = l_1' ++ (h :: l_2')
+$$  
+es ordenada y $l' \sim l$.  
+
+El número total de comparaciones es $k = k_p + k_{l_1} + k_{l_2}$.
+
+Por inducción, la función es correcta.
+$Q.E.D.$
+
+---
+
+### Teorema 3. Correctitud de `comparar`
+
+**Enunciado:**  
+Para toda lista $l$ y algoritmos de ordenamiento $a_1, a_2$:
+
+$$
+comparar(a_1,a_2,l) =
+\begin{cases}
+(k_1,k_2) & \text{si } a_1(l) = (l',k_1), \ a_2(l) = (l',k_2) \\
+(-1,-1) & \text{si } a_1(l) = (l_1,k_1), \ a_2(l) = (l_2,k_2), \ l_1 \neq l_2
+\end{cases}
+$$
+
+**Demostración:**
+
+Sea $a_1(l) = (l_1, k_1)$ y $a_2(l) = (l_2, k_2)$.  
+
+- Si $l_1 = l_2$, entonces ambas funciones producen la misma lista ordenada.  
+  Por correctitud de $a_1$ y $a_2$, $l_1 \sim l$ y $l_2 \sim l$.  
+  Por unicidad del ordenamiento, $l_1 = l_2$. Entonces, $comparar$ devuelve $(k_1, k_2)$.
+
+- Si $l_1 \neq l_2$, la función devuelve $(-1,-1)$, cumpliendo la especificación.
+
+Así, la función es correcta.
+$Q.E.D.$
 
 ---
 
@@ -180,7 +319,6 @@ comparar(iSortDesc, qSortDesc, l50)
 | comparar(iSortAsc, qSortAsc, List(4,5,6,1,2,3))  | (13,16)            | (9,9)               |
 | comparar(iSortAsc, qSortDesc, List(4,5,6,1,2,3)) | (-1,-1)            | (-1,-1)             |
 
-
 ### 3.3. Casos con listas grandes ordenadas y reversas
 
 | Lista    | Descripción | Resultado esperado (iSortAsc vs qSortAsc) | Observado       |
@@ -217,7 +355,7 @@ comparar(iSortDesc, qSortDesc, l50)
 
 ### 3.5 Conclusiones de las pruebas
 
-> Estas y mas pruebas se pueden encontrar en el archivo `Pruebas.sc` que se encuentra en el `.zip` de la entrega, ahi se hallan comentadas y explicadas (los resultados pueden variar por el uso de listas aleatorias).
+>Estas y mas pruebas se pueden encontrar en el archivo `Pruebas.sc` que se encuentra en el `.zip` de la entrega, ahi se hallan comentadas y explicadas (los resultados pueden variar por el uso de listas aleatorias).
 
 Nos encontramos con que:
 
