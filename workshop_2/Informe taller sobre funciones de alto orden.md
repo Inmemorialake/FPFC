@@ -33,8 +33,6 @@ $$
 
 Decimos que una lista $l'$ es una **permutación** de otra lista $l$, y escribimos $l' \sim l$, si $l'$ contiene exactamente los mismos elementos que $l$.
 
----
-
 ### Lema 1. Correctitud de `insert`
 
 **Enunciado:**  
@@ -72,8 +70,6 @@ donde $l'$ está ordenada, $l' \sim (e :: l)$ y $k$ corresponde al número exact
 En ambos casos se cumple la propiedad.
 $Q.E.D.$
 
----
-
 ### Teorema 1. Correctitud de `insertionSort`
 
 **Enunciado:**  
@@ -103,8 +99,6 @@ donde $l'$ está ordenada según $\leq_{comp}$, $l' \sim l$, y $k$ es el número
 
 Por inducción, la función es correcta.
 $Q.E.D.$
-
----
 
 ### Lema 2. Correctitud de `menoresQueNoMenoresQue`
 
@@ -137,8 +131,6 @@ Sumando la de $h$, se obtiene $k = |l|$.
 
 La unión $l_1 \cup l_2 \sim l$, así que el lema queda demostrado.
 $Q.E.D.$
-
----
 
 ### Teorema 2. Correctitud de `quickSort`
 
@@ -173,8 +165,6 @@ El número total de comparaciones es $k = k_p + k_{l_1} + k_{l_2}$.
 
 Por inducción, la función es correcta.
 $Q.E.D.$
-
----
 
 ### Teorema 3. Correctitud de `comparar`
 
