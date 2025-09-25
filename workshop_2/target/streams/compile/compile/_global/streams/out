@@ -1,0 +1,127 @@
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:5:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mdef menorQue(a: Int, b: Int): Boolean = a < b[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:6:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mdef mayorQue(a: Int, b: Int): Boolean = a > b[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:8:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval iSortAsc  = insertionSort[Int](menorQue)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:9:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval iSortDesc = insertionSort[Int](mayorQue)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:10:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval qSortAsc  = quickSort[Int](menorQue)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:11:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval qSortDesc = quickSort[Int](mayorQue)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:14:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mdef listaAlAzar(long: Int): List[Int] = {[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:22:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln("== PRUEBAS INSERT ==")[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:23:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(insert(3, List(1, 2, 4, 5), menorQue)) // (List(1,2,3,4,5), 2)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:24:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(insert(1, List(), menorQue))            // (List(1), 0)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:25:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(insert(6, List(1,2,3,4,5), menorQue))   // (List(1,2,3,4,5,6), 5)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:28:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln("== PRUEBAS INSERTIONSORT ==")[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:29:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(iSortAsc(List(4,5,6,1,2,3)))  // (List(1,2,3,4,5,6), 13)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:30:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(iSortDesc(List(4,5,6,1,2,3))) // Ordenado descendente[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:33:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln("== PRUEBAS QUICKSORT ==")[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:34:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(qSortAsc(List(4,5,6,1,2,3)))  // (List(1,2,3,4,5,6), 16)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:35:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(qSortDesc(List(4,5,6,1,2,3))) // Ordenado descendente[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:38:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln("== PRUEBAS COMPARAR ==")[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:39:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, List(4,5,6,1,2,3)))   // (13,16)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:40:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortDesc, List(4,5,6,1,2,3)))  // (-1,-1)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:43:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval lAsc100   = (1 to 100).toList[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:44:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval lAsc1000  = (1 to 1000).toList[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:45:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval lDsc100   = (1 to 100).toList.reverse[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:46:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval lDsc1000  = (1 to 1000).toList.reverse[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:48:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln("== LISTAS GRANDES ==")[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:49:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, lAsc100))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:50:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, lAsc1000))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:51:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, lDsc100))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:52:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, lDsc1000))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:55:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval l5  = listaAlAzar(5)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:56:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval l10 = listaAlAzar(10)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:57:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval l20 = listaAlAzar(20)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:58:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mval l50 = listaAlAzar(50)[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:60:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln("== LISTAS ALEATORIAS ==")[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:61:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(iSortAsc(l5))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:62:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(iSortDesc(l5))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:63:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(qSortAsc(l5))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:64:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(qSortDesc(l5))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:66:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, l5))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:67:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, l10))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:68:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, l20))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m/app/workshop_2/Pruebas.scala:69:1: expected class or object definition[0m
+[0m[[0m[31merror[0m] [0m[0mprintln(comparar(iSortAsc, qSortAsc, l50))[0m
+[0m[[0m[31merror[0m] [0m[0m^[0m
+[0m[[0m[31merror[0m] [0m[0m42 errors found[0m
