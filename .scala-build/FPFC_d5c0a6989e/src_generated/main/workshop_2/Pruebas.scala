@@ -5,6 +5,7 @@ final class Pruebas$_ {
 def args = Pruebas_sc.args$
 def scriptPath = """workshop_2/Pruebas.sc"""
 /*<script>*/
+// Jorge Luis Junior Lasprilla Prada - 2420662, Andrés Gerardo González Rosero- 2416541
 // pruebas.sc - Worksheet de pruebas para el paquete Comparador
 import Comparador._
 import scala.util.Random

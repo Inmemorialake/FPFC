@@ -1,3 +1,4 @@
+// Jorge Luis Junior Lasprilla Prada - 2420662, Andrés Gerardo González Rosero- 2416541
 // pruebas.sc - Worksheet de pruebas para el paquete Comparador
 import Comparador._
 import scala.util.Random

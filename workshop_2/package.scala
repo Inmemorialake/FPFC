@@ -1,3 +1,4 @@
+// Jorge Luis Junior Lasprilla Prada - 2420662, Andrés Gerardo González Rosero- 2416541
 package object Comparador {
 
   type AlgoritmoOrd[T] = List[T] => (List[T], Int)
