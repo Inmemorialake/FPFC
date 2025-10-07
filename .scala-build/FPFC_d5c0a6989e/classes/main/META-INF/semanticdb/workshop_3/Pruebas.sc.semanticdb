@@ -1,0 +1,2527 @@
+
+˛Éworkshop_3/Pruebas.sc∆Kimport Huffman._
+
+// Helpers de aserciones y reporte
+case class TestResult(nombre:String, ok:Boolean, detalle:String = "")
+val resultados = scala.collection.mutable.ArrayBuffer.empty[TestResult]
+var total = 0
+var fallos = 0
+
+def assertCond(cond:Boolean, msg:String = "") = {
+	total += 1
+	if(!cond){
+		fallos += 1
+		resultados += TestResult(s"Test #$total", false, msg)
+	} else resultados += TestResult(s"Test #$total", true, msg)
+}
+
+def assertEquals[A](obt:A, esp:A, msg:String = "") = assertCond(
+	obt == esp,
+	msg + s" | Esperado: $esp, Obtenido: $obt"
+)
+
+def section(titulo:String)(body: => Unit) = {
+	println(s"\n=== $titulo ===")
+	body
+}
+
+// Datos comunes
+val textoBase = "abbcccdddd" // frecuencias: a1 b2 c3 d4
+val listaCharsBase = cadenaALista(textoBase)
+val arbolBase = crearArbolDeHuffman(listaCharsBase)
+val tablaBase = convertir(arbolBase)
+
+// 1. peso (5 pruebas)
+section("peso") {
+	val hA = Hoja('a', 5)
+	val hB = Hoja('b', 2)
+	val nodo = hacerNodoArbolH(hA, hB) // peso 7
+	assertEquals(peso(hA), 5, "Hoja a") // 1
+	assertEquals(peso(hB), 2, "Hoja b") // 2
+	assertEquals(peso(nodo), 7, "Nodo suma") // 3
+	val nodo2 = hacerNodoArbolH(nodo, hA) // 7 + 5 = 12
+	assertEquals(peso(nodo2), 12, "Nodo compuesto") // 4
+	assertEquals(peso(arbolBase), listaCharsBase.size, "Arbol base") // 5
+}
+
+// 2. cars (5 pruebas)
+section("cars") {
+	val h = Hoja('z', 1)
+	assertEquals(cars(h), List('z'), "Hoja z") // 1
+	val n = hacerNodoArbolH(Hoja('a',1), Hoja('b',1))
+	assertEquals(cars(n).sorted, List('a','b'), "Nodo a-b") // 2
+	val n2 = hacerNodoArbolH(n, Hoja('c',1))
+	assertCond(cars(n2).contains('c'), "Nodo incluye c") // 3
+	assertEquals(cars(arbolBase).sorted, listaCharsBase.distinct.sorted, "Base chars") // 4
+	assertEquals(cars(arbolBase).distinct.size, cars(arbolBase).size, "Sin duplicados") // 5
+}
+
+// 3. hacerNodoArbolH (5 pruebas)
+section("hacerNodoArbolH") {
+	val h1 = Hoja('x',3)
+	val h2 = Hoja('y',4)
+	val n = hacerNodoArbolH(h1,h2)
+	assertEquals(peso(n), 7, "Peso xy") // 1
+	assertEquals(cars(n).sorted, List('x','y'), "Chars xy") // 2
+	val h3 = Hoja('z',1)
+	val n2 = hacerNodoArbolH(n,h3)
+	assertEquals(peso(n2), 8, "Peso xyz") // 3
+	assertCond(cars(n2).contains('z'), "Incluye z") // 4
+	assertEquals(cars(n2).size, 3, "Tres chars") // 5
+}
+
+// 4. cadenaALista (5 pruebas)
+section("cadenaALista") {
+	assertEquals(cadenaALista(""), Nil, "Vac√≠a") // 1
+	assertEquals(cadenaALista("a"), List('a'), "Uno") // 2
+	assertEquals(cadenaALista("ab"), List('a','b'), "Dos") // 3
+	assertEquals(cadenaALista("aba"), List('a','b','a'), "Duplicados") // 4
+	assertEquals(cadenaALista(textoBase).mkString, textoBase, "Base") // 5
+}
+
+// 5. ocurrencias (5 pruebas)
+section("ocurrencias") {
+	assertEquals(ocurrencias(Nil), Nil, "Vac√≠a") // 1
+	assertEquals(ocurrencias(List('a')), List(('a',1)), "Un elem") // 2
+	val occ = ocurrencias(List('a','a','b'))
+	assertCond(occ.contains(('a',2)) && occ.contains(('b',1)), "a=2 b=1") // 3
+	val occ2 = ocurrencias(listaCharsBase)
+	assertCond(occ2.toMap == Map('a'->1,'b'->2,'c'->3,'d'->4), "Frecs base") // 4
+	assertEquals(occ2.map(_._1), List('a','b','c','d'), "Orden") // 5
+}
+
+// 6. listaDeHojasOrdenadas (5 pruebas)
+section("listaDeHojasOrdenadas") {
+	val hojas = listaDeHojasOrdenadas(List(('b',3),('a',1),('c',2)))
+	assertEquals(hojas.map(_.car), List('a','c','b'), "Orden asc") // 1
+	assertEquals(hojas.map(_.peso), List(1,2,3), "Pesos asc") // 2
+	val hojas2 = listaDeHojasOrdenadas(ocurrencias(listaCharsBase))
+	assertEquals(hojas2.size, 4, "Tama√±o 4") // 3
+	assertEquals(hojas2.head.car, 'a', "Primera a") // 4
+	assertEquals(hojas2.last.car, 'd', "Ultima d") // 5
+}
+
+// 7. listaUnitaria (5 pruebas)
+section("listaUnitaria") {
+	assertCond(!listaUnitaria(Nil), "Nil") // 1
+	assertCond(listaUnitaria(List(Hoja('a',1))), "Uno") // 2
+	val hs = List(Hoja('a',1), Hoja('b',2))
+	assertCond(!listaUnitaria(hs), "Dos") // 3
+	assertCond(!listaUnitaria(hs :+ Hoja('c',3)), "Tres") // 4
+	assertCond(listaUnitaria(List(arbolBase)), "Arbol base") // 5
+}
+
+// 8. combinar (5 pruebas)
+section("combinar") {
+	val hojas = listaDeHojasOrdenadas(List(('a',1),('b',2),('c',3)))
+	val comb1 = combinar(hojas)
+	assertEquals(comb1.size, 2, "Reduce 3->2") // 1
+	assertEquals(peso(comb1.head)+ comb1.tail.map(peso).sum, 6, "Suma pesos") // 2
+	val comb2 = combinar(comb1.sortBy(peso))
+	assertEquals(comb2.size, 1, "Reduce 2->1") // 3
+	assertEquals(combinar(comb2), comb2, "Idempotente unitaria") // 4
+	assertEquals(combinar(Nil), Nil, "Nil") // 5
+}
+
+// 9. hastaQue (5 pruebas)
+section("hastaQue") {
+	val hojas = listaDeHojasOrdenadas(ocurrencias(listaCharsBase))
+	val res = hastaQue(listaUnitaria, combinar)(hojas)
+	assertEquals(res.size,1,"Final unitaria") // 1
+	val res2 = hastaQue(listaUnitaria, combinar)(res)
+	assertEquals(res2, res, "Idempotente") // 2
+	val res3 = hastaQue(_.isEmpty, combinar)(Nil)
+	assertEquals(res3, Nil, "Nil cond") // 3
+	val hs2 = listaDeHojasOrdenadas(List(('a',1),('b',2)))
+	val res4 = hastaQue(listaUnitaria, combinar)(hs2)
+	assertEquals(res4.size,1,"Dos->una") // 4
+	assertEquals(peso(res4.head), hs2.map(_.peso).sum, "Peso suma") // 5
+}
+
+// 10. crearArbolDeHuffman (5 pruebas)
+section("crearArbolDeHuffman") {
+	assertEquals(peso(arbolBase), listaCharsBase.size, "Peso base") // 1
+	assertEquals(cars(arbolBase).sorted, listaCharsBase.distinct.sorted, "Chars base") // 2
+	val arbolUno = crearArbolDeHuffman(cadenaALista("aaaa"))
+	assertEquals(peso(arbolUno),4,"Peso uno") // 3
+	assertEquals(cars(arbolUno), List('a'), "Solo a") // 4
+	val arbolDos = crearArbolDeHuffman(cadenaALista("ab"))
+	assertEquals(peso(arbolDos),2,"Peso ab") // 5
+}
+
+// 11. decodificar (5 pruebas)
+section("decodificar") {
+	val bitsBase = codificar(arbolBase)(listaCharsBase)
+	assertEquals(decodificar(arbolBase, bitsBase).mkString, textoBase, "Roundtrip b√°sico") //1
+	val bits2 = codificar(arbolBase)(listaCharsBase ++ listaCharsBase)
+	assertEquals(decodificar(arbolBase, bits2).size, listaCharsBase.size*2, "Duplicado") //2
+	assertCond(decodificar(arbolBase, bitsBase).nonEmpty, "No vac√≠o") //3
+	val arbolUno = crearArbolDeHuffman(cadenaALista("aaaa"))
+	val bitsUno = codificar(arbolUno)(List('a','a'))
+	assertEquals(decodificar(arbolUno, bitsUno).mkString, "aa", "Hoja √∫nica") //4
+	val bitsRap = codificarRapido(arbolBase)(listaCharsBase)
+	assertEquals(decodificar(arbolBase, bitsRap).mkString, textoBase, "Roundtrip r√°pido") //5
+}
+
+// 12. codificar (5 pruebas)
+section("codificar") {
+	val bits = codificar(arbolBase)(listaCharsBase)
+	assertCond(bits.nonEmpty, "No vac√≠o") //1
+	assertEquals(decodificar(arbolBase, bits).mkString, textoBase, "Roundtrip") //2
+	val bits2 = codificar(arbolBase)(listaCharsBase ++ listaCharsBase)
+	assertEquals(bits2.count(_==0) + bits2.count(_==1), bits2.size, "Solo 0/1") //3
+	val arbolUno = crearArbolDeHuffman(cadenaALista("aaaa"))
+	assertEquals(codificar(arbolUno)(List('a','a')), List(), "C√≥digo hoja √∫nica") //4
+	val parcial = codificar(arbolBase)(List('d','d','c'))
+	assertEquals(decodificar(arbolBase, parcial).mkString, "ddc", "Parcial") //5
+}
+
+// 13. codigoEnBits (5 pruebas)
+section("codigoEnBits") {
+	val t = tablaBase
+	val todas = cars(arbolBase)
+	assertEquals(t.map(_._1).toSet, todas.toSet, "Cobertura") //1
+	val bA = codigoEnBits(t)('a')
+	val bB = codigoEnBits(t)('b')
+	assertCond(bA != bB, "Distintos a/b") //2
+	assertEquals(codigoEnBits(t)('a'), bA, "Determinista a") //3
+	assertEquals(codigoEnBits(t)('#'), Nil, "Ausente #") //4
+	assertCond(bA.nonEmpty || todas.size==1, "Longitud v√°lida") //5
+}
+
+// 14. mezclarTablasDeCodigos (5 pruebas)
+section("mezclarTablasDeCodigos") {
+	val ta: TablaCodigos = List(('a', List(0)), ('b', List(1)))
+	val tb: TablaCodigos = List(('c', List(0)), ('d', List(1)))
+	val mix = mezclarTablasDeCodigos(ta, tb)
+	assertEquals(mix.size, 4, "Tama√±o mix") //1
+	assertCond(mix.find(_._1=='a').exists(_._2.head==0), "Prefijo a 0") //2
+	assertCond(mix.find(_._1=='c').exists(_._2.head==1), "Prefijo c 1") //3
+	assertCond(mix.map(_._2).forall(_.nonEmpty), "No vac√≠os") //4
+	assertCond(mix.map(_._2).distinct.size==4, "√önicos") //5
+}
+
+// 15. convertir (5 pruebas)
+section("convertir") {
+	val t = convertir(arbolBase)
+	val chars = cars(arbolBase)
+	assertEquals(t.map(_._1).sorted, chars.sorted, "Todos chars") //1
+	assertCond(t.exists(_._2.nonEmpty) || t.size==1, "Alg√∫n no vac√≠o") //2
+	assertEquals(t.map(_._2).distinct.size, t.size, "Sin duplicar") //3
+	val tUno = convertir(crearArbolDeHuffman(cadenaALista("aaaa")))
+	assertEquals(tUno, List(('a', Nil)), "Hoja √∫nica") //4
+	assertCond(t.map(_._2.size).sum.toDouble / t.size <= chars.size, "Media ok") //5
+}
+
+// 16. codificarRapido (5 pruebas)
+section("codificarRapido") {
+	val bits = codificarRapido(arbolBase)(listaCharsBase)
+	val bitsNorm = codificar(arbolBase)(listaCharsBase)
+	assertEquals(bits, bitsNorm, "Igual codificar") //1
+	val bits2 = codificarRapido(arbolBase)(List('d','d','c'))
+	assertEquals(decodificar(arbolBase, bits2).mkString, "ddc", "Parcial") //2
+	val arbolUno = crearArbolDeHuffman(cadenaALista("aaaa"))
+	assertEquals(codificarRapido(arbolUno)(List('a','a')), List(), "Hoja √∫nica vac√≠o") //3
+	val bitsDup = codificarRapido(arbolBase)(listaCharsBase ++ listaCharsBase)
+	assertEquals(decodificar(arbolBase, bitsDup).mkString, textoBase*2, "Duplicado") //4
+	assertEquals(bits.size, bitsNorm.size, "Misma longitud") //5
+}
+
+// Resumen final
+println("\n================= RESUMEN =================")
+println(s"Total tests: $total  | Fallos: $fallos  | Exitos: ${total - fallos}")
+if(fallos>0){
+	println("\nFallos detallados:")
+	resultados.filterNot(_.ok).zipWithIndex.foreach{ case (r,i) => println(s"${i+1}. ${r.nombre} -> ${r.detalle}") }
+} else println("Todas las pruebas pasaron correctamente.")
+
+*c
+workshop_3/Pruebas$_#args().*argsÄä2"0
+.j,
+*(scala/Array#scala/Predef.String#í: *Z
+"workshop_3/Pruebas$_#scriptPath().*
+scriptPathÄä"
+j
+java/lang/String#í: *]
+'workshop_3/Pruebas$_#TestResult#nombre. Ä*nombreÄä"
+scala/Predef.String#í: *O
+#workshop_3/Pruebas$_#TestResult#ok. Ä*okÄä"
+scala/Boolean#í: *_
+(workshop_3/Pruebas$_#TestResult#detalle. Ä*detalleÄä"
+scala/Predef.String#í: *]
+/workshop_3/Pruebas$_#TestResult#copy().(nombre)*nombreÄä"
+scala/Predef.String#*O
++workshop_3/Pruebas$_#TestResult#copy().(ok)*okÄä"
+scala/Boolean#*_
+0workshop_3/Pruebas$_#TestResult#copy().(detalle)*detalleÄä"
+scala/Predef.String#*˘
+'workshop_3/Pruebas$_#TestResult#copy().*copyÄäºπê
+/workshop_3/Pruebas$_#TestResult#copy().(nombre)
++workshop_3/Pruebas$_#TestResult#copy().(ok)
+0workshop_3/Pruebas$_#TestResult#copy().(detalle)$" workshop_3/Pruebas$_#TestResult#í: *©
+1workshop_3/Pruebas$_#TestResult#copy$default$1().*copy$default$1ÄäY"W
+UjS
+QBO
+scala/Predef.String#3
+1/-scala/annotation/unchecked/uncheckedVariance#í: *£
+1workshop_3/Pruebas$_#TestResult#copy$default$2().*copy$default$2ÄäS"Q
+OjM
+KBI
+scala/Boolean#3
+1/-scala/annotation/unchecked/uncheckedVariance#í: *©
+1workshop_3/Pruebas$_#TestResult#copy$default$3().*copy$default$3ÄäY"W
+UjS
+QBO
+scala/Predef.String#3
+1/-scala/annotation/unchecked/uncheckedVariance#í: *X
+%workshop_3/Pruebas$_#TestResult#_1().*_1Ää "
+j
+scala/Predef.String#í: *R
+%workshop_3/Pruebas$_#TestResult#_2().*_2Ää"
+j
+scala/Boolean#í: *X
+%workshop_3/Pruebas$_#TestResult#_3().*_3Ää "
+j
+scala/Predef.String#í: *d
+3workshop_3/Pruebas$_#TestResult#`<init>`().(nombre) Ä*nombreÄä"
+scala/Predef.String#*V
+/workshop_3/Pruebas$_#TestResult#`<init>`().(ok) Ä*okÄä"
+scala/Boolean#*f
+4workshop_3/Pruebas$_#TestResult#`<init>`().(detalle) Ä*detalleÄä"
+scala/Predef.String#*é
++workshop_3/Pruebas$_#TestResult#`<init>`(). Ä@*<init>Ää»≈ú
+3workshop_3/Pruebas$_#TestResult#`<init>`().(nombre)
+/workshop_3/Pruebas$_#TestResult#`<init>`().(ok)
+4workshop_3/Pruebas$_#TestResult#`<init>`().(detalle)$" workshop_3/Pruebas$_#TestResult#í: *ç
+ workshop_3/Pruebas$_#TestResult# Ä*
+TestResultÄäŒ
+Àjava/lang/Object#scala/Product#java/io/Serializable#$" workshop_3/Pruebas$_#TestResult#"‹
+'workshop_3/Pruebas$_#TestResult#nombre.
+#workshop_3/Pruebas$_#TestResult#ok.
+(workshop_3/Pruebas$_#TestResult#detalle.
++workshop_3/Pruebas$_#TestResult#`<init>`().
+'workshop_3/Pruebas$_#TestResult#copy().
+1workshop_3/Pruebas$_#TestResult#copy$default$1().
+1workshop_3/Pruebas$_#TestResult#copy$default$2().
+1workshop_3/Pruebas$_#TestResult#copy$default$3().
+%workshop_3/Pruebas$_#TestResult#_1().
+%workshop_3/Pruebas$_#TestResult#_2().
+%workshop_3/Pruebas$_#TestResult#_3().í: *^
+0workshop_3/Pruebas$_#TestResult.apply().(nombre)*nombreÄä"
+scala/Predef.String#*P
+,workshop_3/Pruebas$_#TestResult.apply().(ok)*okÄä"
+scala/Boolean#*`
+1workshop_3/Pruebas$_#TestResult.apply().(detalle)*detalleÄä"
+scala/Predef.String#*˛
+(workshop_3/Pruebas$_#TestResult.apply().*applyÄäøºì
+0workshop_3/Pruebas$_#TestResult.apply().(nombre)
+,workshop_3/Pruebas$_#TestResult.apply().(ok)
+1workshop_3/Pruebas$_#TestResult.apply().(detalle)$" workshop_3/Pruebas$_#TestResult#í: *f
+/workshop_3/Pruebas$_#TestResult.unapply().(x$1)*x$1Ää("&
+$" workshop_3/Pruebas$_#TestResult#*ù
+*workshop_3/Pruebas$_#TestResult.unapply().*unapplyÄä[Y1
+/workshop_3/Pruebas$_#TestResult.unapply().(x$1)$" workshop_3/Pruebas$_#TestResult#í: *y
++workshop_3/Pruebas$_#TestResult.toString().*toStringÄä"
+j
+java/lang/String#í: öscala/Any#toString().*√
+>workshop_3/Pruebas$_#TestResult.$lessinit$greater$default$3().*$lessinit$greater$default$3ÄäY"W
+UjS
+QBO
+scala/Predef.String#3
+1/-scala/annotation/unchecked/uncheckedVariance#í: *Ú
+ workshop_3/Pruebas$_#TestResult.
+ *
+TestResultÄä¥
+±java/lang/Object#%¢" workshop_3/Pruebas$_#TestResult."
++workshop_3/Pruebas$_#TestResult.`<init>`().
+(workshop_3/Pruebas$_#TestResult.apply().
+*workshop_3/Pruebas$_#TestResult.unapply().
++workshop_3/Pruebas$_#TestResult.toString().
+>workshop_3/Pruebas$_#TestResult.$lessinit$greater$default$3().í: *ë
+ workshop_3/Pruebas$_#resultados. Ä*
+resultadosÄäS"Q
+OM%scala/collection/mutable/ArrayBuffer#$" workshop_3/Pruebas$_#TestResult#í: *H
+workshop_3/Pruebas$_#total(). Ä*totalÄä"
+
+scala/Int#í: *G
+&workshop_3/Pruebas$_#`total_=`().(x$1)*x$1Ää"
+
+scala/Int#*y
+!workshop_3/Pruebas$_#`total_=`(). Ä*total_=Ää=;(
+&workshop_3/Pruebas$_#`total_=`().(x$1)scala/Unit#í: *J
+workshop_3/Pruebas$_#fallos(). Ä*fallosÄä"
+
+scala/Int#í: *H
+'workshop_3/Pruebas$_#`fallos_=`().(x$1)*x$1Ää"
+
+scala/Int#*|
+"workshop_3/Pruebas$_#`fallos_=`(). Ä*fallos_=Ää><)
+'workshop_3/Pruebas$_#`fallos_=`().(x$1)scala/Unit#í: *N
+(workshop_3/Pruebas$_#assertCond().(cond)*condÄä"
+scala/Boolean#*R
+'workshop_3/Pruebas$_#assertCond().(msg)*msgÄä"
+scala/Predef.String#*Á
+"workshop_3/Pruebas$_#assertCond().*
+assertCondÄä©¶S
+(workshop_3/Pruebas$_#assertCond().(cond)
+'workshop_3/Pruebas$_#assertCond().(msg)OM%scala/collection/mutable/ArrayBuffer#$" workshop_3/Pruebas$_#TestResult#í: *™
+,workshop_3/Pruebas$_#assertCond$default$2().*assertCond$default$2ÄäY"W
+UjS
+QBO
+scala/Predef.String#3
+1/-scala/annotation/unchecked/uncheckedVariance#í: *Z
+'workshop_3/Pruebas$_#assertEquals().[A]	*AÄä&$scala/Nothing#
+scala/Any#*g
+)workshop_3/Pruebas$_#assertEquals().(obt)*obtÄä/"-
++)'workshop_3/Pruebas$_#assertEquals().[A]*g
+)workshop_3/Pruebas$_#assertEquals().(esp)*espÄä/"-
++)'workshop_3/Pruebas$_#assertEquals().[A]*T
+)workshop_3/Pruebas$_#assertEquals().(msg)*msgÄä"
+scala/Predef.String#*≈
+$workshop_3/Pruebas$_#assertEquals().*assertEqualsÄäÉÄ
+)
+'workshop_3/Pruebas$_#assertEquals().[A]Å
+)workshop_3/Pruebas$_#assertEquals().(obt)
+)workshop_3/Pruebas$_#assertEquals().(esp)
+)workshop_3/Pruebas$_#assertEquals().(msg)OM%scala/collection/mutable/ArrayBuffer#$" workshop_3/Pruebas$_#TestResult#í: *d
+1workshop_3/Pruebas$_#assertEquals$default$3().[A]	*AÄä&$scala/Nothing#
+scala/Any#*·
+.workshop_3/Pruebas$_#assertEquals$default$3().*assertEquals$default$3Ääãà
+3
+1workshop_3/Pruebas$_#assertEquals$default$3().[A]QBO
+scala/Predef.String#3
+1/-scala/annotation/unchecked/uncheckedVariance#í: *U
+'workshop_3/Pruebas$_#section().(titulo)*tituloÄä"
+scala/Predef.String#*L
+%workshop_3/Pruebas$_#section().(body)*bodyÄä"
+j
+scala/Unit#*û
+workshop_3/Pruebas$_#section().*sectionÄäge)
+'workshop_3/Pruebas$_#section().(titulo)'
+%workshop_3/Pruebas$_#section().(body)scala/Unit#í: *U
+workshop_3/Pruebas$_#textoBase. Ä*	textoBaseÄä"
+java/lang/String#í: *
+$workshop_3/Pruebas$_#listaCharsBase. Ä*listaCharsBaseÄä9"7
+53 scala/collection/immutable/List#scala/Char#í: *[
+workshop_3/Pruebas$_#arbolBase. Ä*	arbolBaseÄä"
+Huffman/package.ArbolH#í: *a
+workshop_3/Pruebas$_#tablaBase. Ä*	tablaBaseÄä%"#
+!Huffman/package.TablaCodigos#í: *4
+local0 Ä*hAÄä"
+Huffman/package.Hoja#*4
+local1 Ä*hBÄä"
+Huffman/package.Hoja#*6
+local2 Ä*nodoÄä"
+Huffman/package.Nodo#*7
+local3 Ä*nodo2Ää"
+Huffman/package.Nodo#*3
+local4 Ä*hÄä"
+Huffman/package.Hoja#*3
+local5 Ä*nÄä"
+Huffman/package.Nodo#*4
+local6 Ä*n2Ää"
+Huffman/package.Nodo#*4
+local7 Ä*h1Ää"
+Huffman/package.Hoja#*4
+local8 Ä*h2Ää"
+Huffman/package.Hoja#*3
+local9 Ä*nÄä"
+Huffman/package.Nodo#*5
+local10 Ä*h3Ää"
+Huffman/package.Hoja#*5
+local11 Ä*n2Ää"
+Huffman/package.Nodo#*u
+local12 Ä*occÄä\"Z
+XV scala/collection/immutable/List#20scala/Tuple2#scala/Char#
+scala/Int#*v
+local13 Ä*occ2Ää\"Z
+XV scala/collection/immutable/List#20scala/Tuple2#scala/Char#
+scala/Int#*^
+local14 Ä*hojasÄäC"A
+?= scala/collection/immutable/List#Huffman/package.Hoja#*_
+local15 Ä*hojas2ÄäC"A
+?= scala/collection/immutable/List#Huffman/package.Hoja#*[
+local16 Ä*hsÄäC"A
+?= scala/collection/immutable/List#Huffman/package.Hoja#*^
+local17 Ä*hojasÄäC"A
+?= scala/collection/immutable/List#Huffman/package.Hoja#*`
+local18 Ä*comb1ÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*7
+local19*arbolÄä"
+Huffman/package.ArbolH#*7
+local20*arbolÄä"
+Huffman/package.ArbolH#*`
+local21 Ä*comb2ÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*^
+local22 Ä*hojasÄäC"A
+?= scala/collection/immutable/List#Huffman/package.Hoja#*_
+local23*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local24*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*^
+local25 Ä*resÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local26*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local27*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local28 Ä*res2ÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local29*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local30 Ä*res3ÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*\
+local31 Ä*hs2ÄäC"A
+?= scala/collection/immutable/List#Huffman/package.Hoja#*_
+local32*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local33*arbolesÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*_
+local34 Ä*res4ÄäE"C
+A? scala/collection/immutable/List#Huffman/package.ArbolH#*=
+local35 Ä*arbolUnoÄä"
+Huffman/package.ArbolH#*=
+local36 Ä*arbolDosÄä"
+Huffman/package.ArbolH#*`
+local37 Ä*bitsBaseÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*]
+local38 Ä*bits2ÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*=
+local39 Ä*arbolUnoÄä"
+Huffman/package.ArbolH#*_
+local40 Ä*bitsUnoÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*_
+local41 Ä*bitsRapÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*\
+local42 Ä*bitsÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*]
+local43 Ä*bits2ÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*=
+local44 Ä*arbolUnoÄä"
+Huffman/package.ArbolH#*_
+local45 Ä*parcialÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*<
+local46 Ä*tÄä%"#
+!Huffman/package.TablaCodigos#*T
+local47 Ä*todasÄä9"7
+53 scala/collection/immutable/List#scala/Char#*Z
+local48 Ä*bAÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*Z
+local49 Ä*bBÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*=
+local50 Ä*taÄä%"#
+!Huffman/package.TablaCodigos#*=
+local51 Ä*tbÄä%"#
+!Huffman/package.TablaCodigos#*>
+local52 Ä*mixÄä%"#
+!Huffman/package.TablaCodigos#*<
+local53 Ä*tÄä%"#
+!Huffman/package.TablaCodigos#*T
+local54 Ä*charsÄä9"7
+53 scala/collection/immutable/List#scala/Char#*?
+local55 Ä*tUnoÄä%"#
+!Huffman/package.TablaCodigos#*\
+local56 Ä*bitsÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*`
+local57 Ä*bitsNormÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*]
+local58 Ä*bits2ÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*=
+local59 Ä*arbolUnoÄä"
+Huffman/package.ArbolH#*_
+local60 Ä*bitsDupÄäB"@
+>< scala/collection/immutable/List#Huffman/package.Bit#*ù
+local61*x$1ÄäÜ"É
+Ä~scala/Tuple2#]B[
+$" workshop_3/Pruebas$_#TestResult#3
+1/-scala/annotation/unchecked/uncheckedVariance#
+scala/Int#*?
+local62 Ä*rÄä("&
+$" workshop_3/Pruebas$_#TestResult#*)
+local63 Ä*iÄä"
+
+scala/Int#*Y
+ workshop_3/Pruebas$_#`<init>`(). Ä@*<init>Ää workshop_3/Pruebas$_#í: *Æ
+workshop_3/Pruebas$_# *	Pruebas$_Ää¸
+˘java/lang/Object#workshop_3/Pruebas$_#"ƒ
+ workshop_3/Pruebas$_#`<init>`().
+workshop_3/Pruebas$_#args().
+"workshop_3/Pruebas$_#scriptPath().
+ workshop_3/Pruebas$_#TestResult#
+ workshop_3/Pruebas$_#TestResult.
+ workshop_3/Pruebas$_#TestResult.
+ workshop_3/Pruebas$_#resultados.
+workshop_3/Pruebas$_#total().
+!workshop_3/Pruebas$_#`total_=`().
+workshop_3/Pruebas$_#fallos().
+"workshop_3/Pruebas$_#`fallos_=`().
+"workshop_3/Pruebas$_#assertCond().
+,workshop_3/Pruebas$_#assertCond$default$2().
+$workshop_3/Pruebas$_#assertEquals().
+.workshop_3/Pruebas$_#assertEquals$default$3().
+workshop_3/Pruebas$_#section().
+workshop_3/Pruebas$_#textoBase.
+$workshop_3/Pruebas$_#listaCharsBase.
+workshop_3/Pruebas$_#arbolBase.
+workshop_3/Pruebas$_#tablaBase.í: *Ä
+"workshop_3/Pruebas_sc.args$opt0(). Ä*	args$opt0ÄäA"?
+=;scala/Option#*(scala/Array#scala/Predef.String#í *e
+'workshop_3/Pruebas_sc.args$set().(args)*argsÄä.",
+*(scala/Array#scala/Predef.String#*x
+!workshop_3/Pruebas_sc.args$set().*args$setÄä><)
+'workshop_3/Pruebas_sc.args$set().(args)scala/Unit#í: *
+!workshop_3/Pruebas_sc.args$opt().*args$optÄäE"C
+Aj?
+=;scala/Option#*(scala/Array#scala/Predef.String#í: *e
+workshop_3/Pruebas_sc.args$().*argsÄä2"0
+.j,
+*(scala/Array#scala/Predef.String#í: *T
+workshop_3/Pruebas_sc.script. ¿*scriptÄä"
+workshop_3/Pruebas$_#í: *a
+#workshop_3/Pruebas_sc.main().(args)*argsÄä.",
+*(scala/Array#scala/Predef.String#*l
+workshop_3/Pruebas_sc.main().*mainÄä:8%
+#workshop_3/Pruebas_sc.main().(args)scala/Unit#í: *Ÿ
+workshop_3/Pruebas_sc.
+ *
+Pruebas_scÄä•
+¢java/lang/Object#¢workshop_3/Pruebas_sc."Î
+!workshop_3/Pruebas_sc.`<init>`().
+"workshop_3/Pruebas_sc.args$opt0().
+!workshop_3/Pruebas_sc.args$set().
+!workshop_3/Pruebas_sc.args$opt().
+workshop_3/Pruebas_sc.args$().
+workshop_3/Pruebas_sc.script.
+workshop_3/Pruebas_sc.main().í: *i
+%workshop_3/Pruebas$package.Pruebas(). *PruebasÄä*"(
+&j$
+"¢workshop_3/Pruebas_sc.script.í: *¡
+workshop_3/Pruebas$package. *
+workshop_3Ääç
+äjava/lang/Object# ¢workshop_3/Pruebas$package."O
+&workshop_3/Pruebas$package.`<init>`().
+%workshop_3/Pruebas$package.Pruebas().2
+ Huffman/2"
+ #scala/Predef.String#25
+ 'workshop_3/Pruebas$_#TestResult#nombre.2
+( /scala/Boolean#21
+% '#workshop_3/Pruebas$_#TestResult#ok.2"
+9 ?scala/Predef.String#26
+1 8(workshop_3/Pruebas$_#TestResult#detalle.29
+ +workshop_3/Pruebas$_#TestResult#`<init>`().2.
+  workshop_3/Pruebas$_#TestResult#2
+ scala/2
+ !scala/collection/2'
+" )scala/collection/mutable/23
+* 5%scala/collection/mutable/ArrayBuffer.2;
+6 ;-scala/collection/mutable/ArrayBuffer.empty().2.
+< F workshop_3/Pruebas$_#TestResult#2.
+  workshop_3/Pruebas$_#resultados.2+
+ 	workshop_3/Pruebas$_#total().2,
+ 
+workshop_3/Pruebas$_#fallos().2
+ scala/Boolean#26
+ (workshop_3/Pruebas$_#assertCond().(cond)2"
+! 'scala/Predef.String#25
+  'workshop_3/Pruebas$_#assertCond().(msg)2/
+		 !workshop_3/Pruebas$_#`total_=`().2+
+		 workshop_3/Pruebas$_#total().26
+
+
+ 	(workshop_3/Pruebas$_#assertCond().(cond)20
+ "workshop_3/Pruebas$_#`fallos_=`().2,
+ workshop_3/Pruebas$_#fallos().2.
+  workshop_3/Pruebas$_#resultados.27
+ )scala/collection/mutable/Growable#`+=`().2.
+  workshop_3/Pruebas$_#TestResult.2&
+ scala/StringContext#s().2+
+$ )workshop_3/Pruebas$_#total().25
+3 6'workshop_3/Pruebas$_#assertCond().(msg)2.
+  workshop_3/Pruebas$_#resultados.27
+ )scala/collection/mutable/Growable#`+=`().2.
+   workshop_3/Pruebas$_#TestResult.2&
+! "scala/StringContext#s().2+
+* /workshop_3/Pruebas$_#total().25
+8 ;'workshop_3/Pruebas$_#assertCond().(msg)20
+ "workshop_3/Pruebas$_#assertCond().25
+ 'workshop_3/Pruebas$_#assertEquals().[A]25
+ 'workshop_3/Pruebas$_#assertEquals().[A]27
+ )workshop_3/Pruebas$_#assertEquals().(obt)25
+  'workshop_3/Pruebas$_#assertEquals().[A]27
+ )workshop_3/Pruebas$_#assertEquals().(esp)2"
+& ,scala/Predef.String#27
+" %)workshop_3/Pruebas$_#assertEquals().(msg)20
+5 ?"workshop_3/Pruebas$_#assertCond().27
+ )workshop_3/Pruebas$_#assertEquals().(obt)2
+ scala/Any#`==`().27
+ )workshop_3/Pruebas$_#assertEquals().(esp)27
+ )workshop_3/Pruebas$_#assertEquals().(msg)2%
+ java/lang/String#`+`().2&
+ scala/StringContext#s().27
+ )workshop_3/Pruebas$_#assertEquals().(esp)27
+' *)workshop_3/Pruebas$_#assertEquals().(obt)22
+ $workshop_3/Pruebas$_#assertEquals().2?
+ 1workshop_3/Pruebas$_#assertEquals$default$3().[A]2"
+ scala/Predef.String#25
+ 'workshop_3/Pruebas$_#section().(titulo)2
+$ (scala/Unit#23
+ %workshop_3/Pruebas$_#section().(body)2'
+ scala/Predef.println(+1).2&
+	 
+scala/StringContext#s().25
+ 'workshop_3/Pruebas$_#section().(titulo)23
+ %workshop_3/Pruebas$_#section().(body)2-
+ workshop_3/Pruebas$_#section().2-
+ workshop_3/Pruebas$_#textoBase.2-
+ !Huffman/package.cadenaALista().2-
+" +workshop_3/Pruebas$_#textoBase.22
+ $workshop_3/Pruebas$_#listaCharsBase.24
+ #&Huffman/package.crearArbolDeHuffman().22
+$ 2$workshop_3/Pruebas$_#listaCharsBase.2-
+ workshop_3/Pruebas$_#arbolBase.2*
+ Huffman/package.convertir().2-
+ #workshop_3/Pruebas$_#arbolBase.2-
+ workshop_3/Pruebas$_#tablaBase.2+
+!! workshop_3/Pruebas$_#section().2#
+"
+" Huffman/package.Hoja.2
+"" local02#
+#
+# Huffman/package.Hoja.2
+## local120
+$$ "Huffman/package.hacerNodoArbolH().2
+$$ local02
+$ $ "local12
+$$ 	local222
+%% $workshop_3/Pruebas$_#assertEquals().2%
+%% Huffman/package.peso().2
+%% local022
+&& $workshop_3/Pruebas$_#assertEquals().2%
+&& Huffman/package.peso().2
+&& local122
+'' $workshop_3/Pruebas$_#assertEquals().2%
+'' Huffman/package.peso().2
+'' local220
+(( "Huffman/package.hacerNodoArbolH().2
+(( !local22
+(#( %local02
+(( 
+local322
+)) $workshop_3/Pruebas$_#assertEquals().2%
+)) Huffman/package.peso().2
+)) local322
+** $workshop_3/Pruebas$_#assertEquals().2%
+** Huffman/package.peso().2-
+** workshop_3/Pruebas$_#arbolBase.22
+** -$workshop_3/Pruebas$_#listaCharsBase.2-
+*.* 2scala/collection/SeqOps#size().2+
+.. workshop_3/Pruebas$_#section().2#
+/	/ Huffman/package.Hoja.2
+// local422
+00 $workshop_3/Pruebas$_#assertEquals().2%
+00 Huffman/package.cars().2
+00 local42!
+00 scala/package.List.20
+1	1 "Huffman/package.hacerNodoArbolH().2#
+11 Huffman/package.Hoja.2#
+1&1 *Huffman/package.Hoja.2
+11 local522
+22 $workshop_3/Pruebas$_#assertEquals().2%
+22 Huffman/package.cars().2
+22 local52H
+22 :scala/collection/immutable/StrictOptimizedSeqOps#sorted().2!
+22 "scala/package.List.20
+3
+3 "Huffman/package.hacerNodoArbolH().2
+33 local52#
+33 !Huffman/package.Hoja.2
+33 local620
+44 "workshop_3/Pruebas$_#assertCond().2%
+44 Huffman/package.cars().2
+44 local629
+44 +scala/collection/immutable/List#contains().22
+55 $workshop_3/Pruebas$_#assertEquals().2%
+55 Huffman/package.cars().2-
+55 workshop_3/Pruebas$_#arbolBase.2H
+55 $:scala/collection/immutable/StrictOptimizedSeqOps#sorted().22
+5&5 4$workshop_3/Pruebas$_#listaCharsBase.21
+555 =#scala/collection/SeqOps#distinct().2H
+5>5 D:scala/collection/immutable/StrictOptimizedSeqOps#sorted().22
+66 $workshop_3/Pruebas$_#assertEquals().2%
+66 Huffman/package.cars().2-
+66 workshop_3/Pruebas$_#arbolBase.21
+66 &#scala/collection/SeqOps#distinct().2-
+6'6 +scala/collection/SeqOps#size().2%
+6-6 1Huffman/package.cars().2-
+626 ;workshop_3/Pruebas$_#arbolBase.2-
+6=6 Ascala/collection/SeqOps#size().2+
+:: workshop_3/Pruebas$_#section().2#
+;
+; Huffman/package.Hoja.2
+;; local72#
+<
+< Huffman/package.Hoja.2
+<< local820
+=	= "Huffman/package.hacerNodoArbolH().2
+== local72
+== local82
+== local922
+>> $workshop_3/Pruebas$_#assertEquals().2%
+>> Huffman/package.peso().2
+>> local922
+?? $workshop_3/Pruebas$_#assertEquals().2%
+?? Huffman/package.cars().2
+?? local92H
+?? :scala/collection/immutable/StrictOptimizedSeqOps#sorted().2!
+?? "scala/package.List.2#
+@
+@ Huffman/package.Hoja.2
+@@ local1020
+A
+A "Huffman/package.hacerNodoArbolH().2
+AA local92
+AA local102
+AA local1122
+BB $workshop_3/Pruebas$_#assertEquals().2%
+BB Huffman/package.peso().2
+BB local1120
+CC "workshop_3/Pruebas$_#assertCond().2%
+CC Huffman/package.cars().2
+CC local1129
+CC +scala/collection/immutable/List#contains().22
+DD $workshop_3/Pruebas$_#assertEquals().2%
+DD Huffman/package.cars().2
+DD local112-
+DD scala/collection/SeqOps#size().2+
+HH workshop_3/Pruebas$_#section().22
+II $workshop_3/Pruebas$_#assertEquals().2-
+II Huffman/package.cadenaALista().2 
+I I #scala/package.Nil.22
+JJ $workshop_3/Pruebas$_#assertEquals().2-
+JJ Huffman/package.cadenaALista().2!
+J!J %scala/package.List.22
+KK $workshop_3/Pruebas$_#assertEquals().2-
+KK Huffman/package.cadenaALista().2!
+K"K &scala/package.List.22
+LL $workshop_3/Pruebas$_#assertEquals().2-
+LL Huffman/package.cadenaALista().2!
+L#L 'scala/package.List.22
+MM $workshop_3/Pruebas$_#assertEquals().2-
+MM Huffman/package.cadenaALista().2-
+MM $workshop_3/Pruebas$_#textoBase.2<
+M&M ..scala/collection/IterableOnceOps#mkString(+2).2-
+M0M 9workshop_3/Pruebas$_#textoBase.2+
+QQ workshop_3/Pruebas$_#section().22
+RR $workshop_3/Pruebas$_#assertEquals().2,
+RR Huffman/package.ocurrencias().2 
+RR scala/package.Nil.2 
+R R #scala/package.Nil.22
+SS $workshop_3/Pruebas$_#assertEquals().2,
+SS Huffman/package.ocurrencias().2!
+SS scala/package.List.2!
+S&S *scala/package.List.2,
+TT Huffman/package.ocurrencias().2!
+TT scala/package.List.2
+TT local1220
+UU "workshop_3/Pruebas$_#assertCond().2
+UU local1229
+UU +scala/collection/immutable/List#contains().2#
+U"U $scala/Boolean#`&&`().2
+U%U (local1229
+U)U 1+scala/collection/immutable/List#contains().2,
+VV Huffman/package.ocurrencias().22
+VV &$workshop_3/Pruebas$_#listaCharsBase.2
+VV 	local1320
+WW "workshop_3/Pruebas$_#assertCond().2
+WW local1327
+WW )scala/collection/IterableOnceOps#toMap().2
+WW scala/Any#`==`().2
+WW scala/Predef.Map.2-
+W!W #scala/Predef.ArrowAssoc#`->`().2-
+W(W *scala/Predef.ArrowAssoc#`->`().2-
+W/W 1scala/Predef.ArrowAssoc#`->`().2-
+W6W 8scala/Predef.ArrowAssoc#`->`().22
+XX $workshop_3/Pruebas$_#assertEquals().2
+XX local1324
+XX &scala/collection/immutable/List#map().2
+XX scala/Tuple2#_1.2!
+XX "scala/package.List.2+
+\\ workshop_3/Pruebas$_#section().26
+]] "(Huffman/package.listaDeHojasOrdenadas().2!
+]#] 'scala/package.List.2
+]] 
+local1422
+^^ $workshop_3/Pruebas$_#assertEquals().2
+^^ local1424
+^^ &scala/collection/immutable/List#map().2'
+^^ Huffman/package.Hoja#car.2!
+^ ^ $scala/package.List.22
+__ $workshop_3/Pruebas$_#assertEquals().2
+__ local1424
+__ &scala/collection/immutable/List#map().2(
+__ Huffman/package.Hoja#peso.2!
+_!_ %scala/package.List.26
+`` #(Huffman/package.listaDeHojasOrdenadas().2,
+`$` /Huffman/package.ocurrencias().22
+`0` >$workshop_3/Pruebas$_#listaCharsBase.2
+`` local1522
+aa $workshop_3/Pruebas$_#assertEquals().2
+aa local152-
+aa scala/collection/SeqOps#size().22
+bb $workshop_3/Pruebas$_#assertEquals().2
+bb local1522
+bb $scala/collection/IterableOps#head().2'
+bb Huffman/package.Hoja#car.22
+cc $workshop_3/Pruebas$_#assertEquals().2
+cc local1525
+cc 'scala/collection/immutable/List#last().2'
+cc Huffman/package.Hoja#car.2+
+gg workshop_3/Pruebas$_#section().20
+hh "workshop_3/Pruebas$_#assertCond().2.
+hh  Huffman/package.listaUnitaria().2 
+hh scala/package.Nil.20
+ii "workshop_3/Pruebas$_#assertCond().2.
+ii  Huffman/package.listaUnitaria().2!
+ii scala/package.List.2#
+ii #Huffman/package.Hoja.2!
+j
+j scala/package.List.2#
+jj Huffman/package.Hoja.2#
+jj  Huffman/package.Hoja.2
+jj local1620
+kk "workshop_3/Pruebas$_#assertCond().2.
+kk  Huffman/package.listaUnitaria().2
+kk local1620
+ll "workshop_3/Pruebas$_#assertCond().2.
+ll  Huffman/package.listaUnitaria().2
+ll local162-
+ll  scala/collection/SeqOps#`:+`().2#
+l!l %Huffman/package.Hoja.20
+mm "workshop_3/Pruebas$_#assertCond().2.
+mm  Huffman/package.listaUnitaria().2!
+mm scala/package.List.2-
+mm (workshop_3/Pruebas$_#arbolBase.2+
+qq workshop_3/Pruebas$_#section().26
+rr "(Huffman/package.listaDeHojasOrdenadas().2!
+r#r 'scala/package.List.2
+rr 
+local172)
+ss Huffman/package.combinar().2
+ss local172
+ss 
+local1822
+tt $workshop_3/Pruebas$_#assertEquals().2
+tt local182-
+tt scala/collection/SeqOps#size().22
+uu $workshop_3/Pruebas$_#assertEquals().2%
+uu Huffman/package.peso().2
+uu local1822
+uu $scala/collection/IterableOps#head().2 
+uu scala/Int#`+`(+4).2
+u u %local1822
+u&u *$scala/collection/IterableOps#tail().24
+u+u .&scala/collection/immutable/List#map().2%
+u/u 3Huffman/package.peso().25
+u5u 8'scala/collection/IterableOnceOps#sum().2)
+vv Huffman/package.combinar().2
+vv local182/
+vv "!scala/collection/SeqOps#sortBy().2%
+v#v 'Huffman/package.peso().2
+vv 
+local2122
+ww $workshop_3/Pruebas$_#assertEquals().2
+ww local212-
+ww scala/collection/SeqOps#size().22
+xx $workshop_3/Pruebas$_#assertEquals().2)
+xx Huffman/package.combinar().2
+xx local212
+xx $local2122
+yy $workshop_3/Pruebas$_#assertEquals().2)
+yy Huffman/package.combinar().2 
+yy scala/package.Nil.2 
+yy  scala/package.Nil.2+
+}} workshop_3/Pruebas$_#section().26
+~~ "(Huffman/package.listaDeHojasOrdenadas().2,
+~#~ .Huffman/package.ocurrencias().22
+~/~ =$workshop_3/Pruebas$_#listaCharsBase.2
+~~ 
+local222)
+ Huffman/package.hastaQue().2.
+ ! Huffman/package.listaUnitaria().2)
+# +Huffman/package.combinar().2
+- 2local222
+ local2524
+
+ÄÄ $workshop_3/Pruebas$_#assertEquals().2
+
+ÄÄ local252/
+
+ÄÄ scala/collection/SeqOps#size().2+
+
+ÅÅ Huffman/package.hastaQue().20
+
+ÅÅ " Huffman/package.listaUnitaria().2+
+
+Å$Å ,Huffman/package.combinar().2
+
+Å.Å 1local252
+
+ÅÅ 	local2824
+
+ÇÇ $workshop_3/Pruebas$_#assertEquals().2
+
+ÇÇ local282
+
+ÇÇ local252+
+
+ÉÉ Huffman/package.hastaQue().2:
+
+ÉÉ *scala/collection/immutable/List#isEmpty().2+
+
+É É (Huffman/package.combinar().2"
+
+É*É -scala/package.Nil.2
+
+ÉÉ 	local3024
+
+ÑÑ $workshop_3/Pruebas$_#assertEquals().2
+
+ÑÑ local302"
+
+ÑÑ scala/package.Nil.28
+
+ÖÖ  (Huffman/package.listaDeHojasOrdenadas().2#
+
+Ö!Ö %scala/package.List.2
+
+ÖÖ local312+
+
+ÜÜ Huffman/package.hastaQue().20
+
+ÜÜ " Huffman/package.listaUnitaria().2+
+
+Ü$Ü ,Huffman/package.combinar().2
+
+Ü.Ü 1local312
+
+ÜÜ 	local3424
+
+áá $workshop_3/Pruebas$_#assertEquals().2
+
+áá local342/
+
+áá scala/collection/SeqOps#size().24
+
+àà $workshop_3/Pruebas$_#assertEquals().2'
+
+àà Huffman/package.peso().2
+
+àà local3424
+
+àà $scala/collection/IterableOps#head().2
+
+àà "local3126
+
+à#à &&scala/collection/immutable/List#map().2*
+
+à)à -Huffman/package.Hoja#peso.27
+
+à/à 2'scala/collection/IterableOnceOps#sum().2-
+åå workshop_3/Pruebas$_#section().24
+
+çç $workshop_3/Pruebas$_#assertEquals().2'
+
+çç Huffman/package.peso().2/
+
+çç workshop_3/Pruebas$_#arbolBase.24
+
+çç -$workshop_3/Pruebas$_#listaCharsBase.2/
+
+ç.ç 2scala/collection/SeqOps#size().24
+
+éé $workshop_3/Pruebas$_#assertEquals().2'
+
+éé Huffman/package.cars().2/
+
+éé workshop_3/Pruebas$_#arbolBase.2J
+
+éé $:scala/collection/immutable/StrictOptimizedSeqOps#sorted().24
+
+é&é 4$workshop_3/Pruebas$_#listaCharsBase.23
+
+é5é =#scala/collection/SeqOps#distinct().2J
+
+é>é D:scala/collection/immutable/StrictOptimizedSeqOps#sorted().26
+
+èè #&Huffman/package.crearArbolDeHuffman().2/
+
+è$è 0Huffman/package.cadenaALista().2
+
+èè local3524
+
+êê $workshop_3/Pruebas$_#assertEquals().2'
+
+êê Huffman/package.peso().2
+
+êê local3524
+
+ëë $workshop_3/Pruebas$_#assertEquals().2'
+
+ëë Huffman/package.cars().2
+
+ëë local352#
+
+ëë "scala/package.List.26
+
+íí #&Huffman/package.crearArbolDeHuffman().2/
+
+í$í 0Huffman/package.cadenaALista().2
+
+íí local3624
+
+ìì $workshop_3/Pruebas$_#assertEquals().2'
+
+ìì Huffman/package.peso().2
+
+ìì local362-
+óó workshop_3/Pruebas$_#section().2,
+
+òò Huffman/package.codificar().2/
+
+òò #workshop_3/Pruebas$_#arbolBase.24
+
+ò%ò 3$workshop_3/Pruebas$_#listaCharsBase.2
+
+òò local3724
+
+ôô $workshop_3/Pruebas$_#assertEquals().2.
+
+ôô Huffman/package.decodificar().2/
+
+ôô #workshop_3/Pruebas$_#arbolBase.2
+
+ô%ô -local372>
+
+ô/ô 7.scala/collection/IterableOnceOps#mkString(+2).2/
+
+ô9ô Bworkshop_3/Pruebas$_#textoBase.2,
+
+öö Huffman/package.codificar().2/
+
+öö  workshop_3/Pruebas$_#arbolBase.24
+
+ö"ö 0$workshop_3/Pruebas$_#listaCharsBase.24
+
+ö1ö 3$scala/collection/IterableOps#`++`().24
+
+ö4ö B$workshop_3/Pruebas$_#listaCharsBase.2
+
+öö 
+local3824
+
+õõ $workshop_3/Pruebas$_#assertEquals().2.
+
+õõ Huffman/package.decodificar().2/
+
+õõ #workshop_3/Pruebas$_#arbolBase.2
+
+õ%õ *local382/
+
+õ,õ 0scala/collection/SeqOps#size().24
+
+õ2õ @$workshop_3/Pruebas$_#listaCharsBase.2/
+
+õAõ Escala/collection/SeqOps#size().2"
+
+õEõ Fscala/Int#`*`(+3).22
+
+úú "workshop_3/Pruebas$_#assertCond().2.
+
+úú Huffman/package.decodificar().2/
+
+úú !workshop_3/Pruebas$_#arbolBase.2
+
+ú#ú +local372<
+
+ú-ú 5,scala/collection/IterableOnceOps#nonEmpty().26
+
+ùù #&Huffman/package.crearArbolDeHuffman().2/
+
+ù$ù 0Huffman/package.cadenaALista().2
+
+ùù local392,
+
+ûû Huffman/package.codificar().2
+
+ûû !local392#
+
+û#û 'scala/package.List.2
+
+ûû local4024
+
+üü $workshop_3/Pruebas$_#assertEquals().2.
+
+üü Huffman/package.decodificar().2
+
+üü "local392
+
+ü$ü +local402>
+
+ü-ü 5.scala/collection/IterableOnceOps#mkString(+2).22
+
+†† "Huffman/package.codificarRapido().2/
+
+†† (workshop_3/Pruebas$_#arbolBase.24
+
+†*† 8$workshop_3/Pruebas$_#listaCharsBase.2
+
+†† local4124
+
+°° $workshop_3/Pruebas$_#assertEquals().2.
+
+°° Huffman/package.decodificar().2/
+
+°° #workshop_3/Pruebas$_#arbolBase.2
+
+°%° ,local412>
+
+°.° 6.scala/collection/IterableOnceOps#mkString(+2).2/
+
+°8° Aworkshop_3/Pruebas$_#textoBase.2-
+•• workshop_3/Pruebas$_#section().2,
+
+¶¶ Huffman/package.codificar().2/
+
+¶¶ workshop_3/Pruebas$_#arbolBase.24
+
+¶!¶ /$workshop_3/Pruebas$_#listaCharsBase.2
+
+¶¶ 	local4222
+
+ßß "workshop_3/Pruebas$_#assertCond().2
+
+ßß local422<
+
+ßß ,scala/collection/IterableOnceOps#nonEmpty().24
+
+®® $workshop_3/Pruebas$_#assertEquals().2.
+
+®® Huffman/package.decodificar().2/
+
+®® #workshop_3/Pruebas$_#arbolBase.2
+
+®%® )local422>
+
+®+® 3.scala/collection/IterableOnceOps#mkString(+2).2/
+
+®5® >workshop_3/Pruebas$_#textoBase.2,
+
+©© Huffman/package.codificar().2/
+
+©©  workshop_3/Pruebas$_#arbolBase.24
+
+©"© 0$workshop_3/Pruebas$_#listaCharsBase.24
+
+©1© 3$scala/collection/IterableOps#`++`().24
+
+©4© B$workshop_3/Pruebas$_#listaCharsBase.2
+
+©© 
+local4324
+
+™™ $workshop_3/Pruebas$_#assertEquals().2
+
+™™ local4329
+
+™™ )scala/collection/IterableOnceOps#count().2#
+
+™™ scala/Int#`==`(+3).2"
+
+™ ™ !scala/Int#`+`(+4).2
+
+™"™ 'local4329
+
+™(™ -)scala/collection/IterableOnceOps#count().2#
+
+™/™ 1scala/Int#`==`(+3).2
+
+™5™ :local432/
+
+™;™ ?scala/collection/SeqOps#size().26
+
+´´ #&Huffman/package.crearArbolDeHuffman().2/
+
+´$´ 0Huffman/package.cadenaALista().2
+
+´´ local4424
+
+¨¨ $workshop_3/Pruebas$_#assertEquals().2,
+
+¨¨ Huffman/package.codificar().2
+
+¨¨  local442#
+
+¨"¨ &scala/package.List.2#
+
+¨2¨ 6scala/package.List.2,
+
+≠≠ Huffman/package.codificar().2/
+
+≠≠ "workshop_3/Pruebas$_#arbolBase.2#
+
+≠$≠ (scala/package.List.2
+
+≠≠ local4524
+
+ÆÆ $workshop_3/Pruebas$_#assertEquals().2.
+
+ÆÆ Huffman/package.decodificar().2/
+
+ÆÆ #workshop_3/Pruebas$_#arbolBase.2
+
+Æ%Æ ,local452>
+
+Æ.Æ 6.scala/collection/IterableOnceOps#mkString(+2).2-
+≤≤ workshop_3/Pruebas$_#section().2/
+
+≥	≥ workshop_3/Pruebas$_#tablaBase.2
+
+≥≥ local462'
+
+¥¥ Huffman/package.cars().2/
+
+¥¥ workshop_3/Pruebas$_#arbolBase.2
+
+¥¥ 
+local4724
+
+µµ $workshop_3/Pruebas$_#assertEquals().2
+
+µµ local4626
+
+µµ &scala/collection/immutable/List#map().2 
+
+µµ scala/Tuple2#_1.29
+
+µµ )scala/collection/IterableOnceOps#toSet().2
+
+µ!µ &local4729
+
+µ'µ ,)scala/collection/IterableOnceOps#toSet().2/
+
+∂
+∂ Huffman/package.codigoEnBits().2
+
+∂∂ local462
+
+∂∂ local482/
+
+∑
+∑ Huffman/package.codigoEnBits().2
+
+∑∑ local462
+
+∑∑ local4922
+
+∏∏ "workshop_3/Pruebas$_#assertCond().2
+
+∏∏ local482!
+
+∏∏ scala/Any#`!=`().2
+
+∏∏ local4924
+
+ππ $workshop_3/Pruebas$_#assertEquals().2/
+
+ππ Huffman/package.codigoEnBits().2
+
+ππ local462
+
+π$π &local4824
+
+∫∫ $workshop_3/Pruebas$_#assertEquals().2/
+
+∫∫ Huffman/package.codigoEnBits().2
+
+∫∫ local462"
+
+∫$∫ 'scala/package.Nil.22
+
+ªª "workshop_3/Pruebas$_#assertCond().2
+
+ªª local482<
+
+ªª ,scala/collection/IterableOnceOps#nonEmpty().2%
+
+ªª scala/Boolean#`||`().2
+
+ªª  local472/
+
+ª!ª %scala/collection/SeqOps#size().2#
+
+ª%ª 'scala/Int#`==`(+3).2-
+øø workshop_3/Pruebas$_#section().2-
+
+¿	¿ Huffman/package.TablaCodigos#2#
+
+¿¿ scala/package.List.2#
+
+¿#¿ 'scala/package.List.2#
+
+¿3¿ 7scala/package.List.2
+
+¿¿ local502-
+
+¡	¡ Huffman/package.TablaCodigos#2#
+
+¡¡ scala/package.List.2#
+
+¡#¡ 'scala/package.List.2#
+
+¡3¡ 7scala/package.List.2
+
+¡¡ local5129
+
+¬¬ !)Huffman/package.mezclarTablasDeCodigos().2
+
+¬"¬ $local502
+
+¬&¬ (local512
+
+¬¬ local5224
+
+√√ $workshop_3/Pruebas$_#assertEquals().2
+
+√√ local522/
+
+√√ scala/collection/SeqOps#size().22
+
+ƒƒ "workshop_3/Pruebas$_#assertCond().2
+
+ƒƒ local5227
+
+ƒƒ 'scala/collection/immutable/List#find().2 
+
+ƒƒ scala/Tuple2#_1.2$
+
+ƒƒ scala/Char#`==`(+2).2&
+
+ƒ ƒ &scala/Option#exists().2 
+
+ƒ)ƒ +scala/Tuple2#_2.24
+
+ƒ,ƒ 0$scala/collection/IterableOps#head().2#
+
+ƒ0ƒ 2scala/Int#`==`(+3).22
+
+≈≈ "workshop_3/Pruebas$_#assertCond().2
+
+≈≈ local5227
+
+≈≈ 'scala/collection/immutable/List#find().2 
+
+≈≈ scala/Tuple2#_1.2$
+
+≈≈ scala/Char#`==`(+2).2&
+
+≈ ≈ &scala/Option#exists().2 
+
+≈)≈ +scala/Tuple2#_2.24
+
+≈,≈ 0$scala/collection/IterableOps#head().2#
+
+≈0≈ 2scala/Int#`==`(+3).22
+
+∆∆ "workshop_3/Pruebas$_#assertCond().2
+
+∆∆ local5226
+
+∆∆ &scala/collection/immutable/List#map().2 
+
+∆∆ scala/Tuple2#_2.29
+
+∆∆  )scala/collection/immutable/List#forall().2<
+
+∆#∆ +,scala/collection/IterableOnceOps#nonEmpty().22
+
+«« "workshop_3/Pruebas$_#assertCond().2
+
+«« local5226
+
+«« &scala/collection/immutable/List#map().2 
+
+«« scala/Tuple2#_2.23
+
+«« "#scala/collection/SeqOps#distinct().2/
+
+«#« 'scala/collection/SeqOps#size().2#
+
+«'« )scala/Int#`==`(+3).2-
+ÀÀ workshop_3/Pruebas$_#section().2,
+
+Ã	Ã Huffman/package.convertir().2/
+
+ÃÃ workshop_3/Pruebas$_#arbolBase.2
+
+ÃÃ local532'
+
+ÕÕ Huffman/package.cars().2/
+
+ÕÕ workshop_3/Pruebas$_#arbolBase.2
+
+ÕÕ 
+local5424
+
+ŒŒ $workshop_3/Pruebas$_#assertEquals().2
+
+ŒŒ local5326
+
+ŒŒ &scala/collection/immutable/List#map().2 
+
+ŒŒ scala/Tuple2#_1.2J
+
+ŒŒ  :scala/collection/immutable/StrictOptimizedSeqOps#sorted().2
+
+Œ"Œ 'local542J
+
+Œ(Œ .:scala/collection/immutable/StrictOptimizedSeqOps#sorted().22
+
+œœ "workshop_3/Pruebas$_#assertCond().2
+
+œœ local5329
+
+œœ )scala/collection/immutable/List#exists().2 
+
+œœ scala/Tuple2#_2.2<
+
+œœ ",scala/collection/IterableOnceOps#nonEmpty().2%
+
+œ$œ &scala/Boolean#`||`().2
+
+œ'œ (local532/
+
+œ)œ -scala/collection/SeqOps#size().2#
+
+œ-œ /scala/Int#`==`(+3).24
+
+–– $workshop_3/Pruebas$_#assertEquals().2
+
+–– local5326
+
+–– &scala/collection/immutable/List#map().2 
+
+–– scala/Tuple2#_2.23
+
+–– "#scala/collection/SeqOps#distinct().2/
+
+–#– 'scala/collection/SeqOps#size().2
+
+–)– *local532/
+
+–+– /scala/collection/SeqOps#size().2,
+
+—— Huffman/package.convertir().26
+
+—— )&Huffman/package.crearArbolDeHuffman().2/
+
+—*— 6Huffman/package.cadenaALista().2
+
+—— 	local5524
+
+““ $workshop_3/Pruebas$_#assertEquals().2
+
+““ local552#
+
+““ scala/package.List.2"
+
+““ "scala/package.Nil.22
+
+”” "workshop_3/Pruebas$_#assertCond().2
+
+”” local5326
+
+”” &scala/collection/immutable/List#map().2 
+
+”” scala/Tuple2#_2.2/
+
+”” scala/collection/SeqOps#size().27
+
+””  'scala/collection/IterableOnceOps#sum().2%
+
+”!” )scala/Int#toDouble().2%
+
+”*” +scala/Double#`/`(+3).2
+
+”,” -local532/
+
+”.” 2scala/collection/SeqOps#size().2&
+
+”3” 5scala/Double#`<=`(+3).2
+
+”6” ;local542/
+
+”<” @scala/collection/SeqOps#size().2-
+◊◊ workshop_3/Pruebas$_#section().22
+
+ÿÿ "Huffman/package.codificarRapido().2/
+
+ÿÿ %workshop_3/Pruebas$_#arbolBase.24
+
+ÿ'ÿ 5$workshop_3/Pruebas$_#listaCharsBase.2
+
+ÿÿ 	local562,
+
+ŸŸ Huffman/package.codificar().2/
+
+ŸŸ #workshop_3/Pruebas$_#arbolBase.24
+
+Ÿ%Ÿ 3$workshop_3/Pruebas$_#listaCharsBase.2
+
+ŸŸ local5724
+
+⁄⁄ $workshop_3/Pruebas$_#assertEquals().2
+
+⁄⁄ local562
+
+⁄⁄ local5722
+
+€€ "Huffman/package.codificarRapido().2/
+
+€€ &workshop_3/Pruebas$_#arbolBase.2#
+
+€(€ ,scala/package.List.2
+
+€€ 
+local5824
+
+‹‹ $workshop_3/Pruebas$_#assertEquals().2.
+
+‹‹ Huffman/package.decodificar().2/
+
+‹‹ #workshop_3/Pruebas$_#arbolBase.2
+
+‹%‹ *local582>
+
+‹,‹ 4.scala/collection/IterableOnceOps#mkString(+2).26
+
+›› #&Huffman/package.crearArbolDeHuffman().2/
+
+›$› 0Huffman/package.cadenaALista().2
+
+›› local5924
+
+ﬁﬁ $workshop_3/Pruebas$_#assertEquals().22
+
+ﬁﬁ "Huffman/package.codificarRapido().2
+
+ﬁﬁ &local592#
+
+ﬁ(ﬁ ,scala/package.List.2#
+
+ﬁ8ﬁ <scala/package.List.22
+
+ﬂﬂ "Huffman/package.codificarRapido().2/
+
+ﬂﬂ (workshop_3/Pruebas$_#arbolBase.24
+
+ﬂ*ﬂ 8$workshop_3/Pruebas$_#listaCharsBase.24
+
+ﬂ9ﬂ ;$scala/collection/IterableOps#`++`().24
+
+ﬂ<ﬂ J$workshop_3/Pruebas$_#listaCharsBase.2
+
+ﬂﬂ local6024
+
+‡‡ $workshop_3/Pruebas$_#assertEquals().2.
+
+‡‡ Huffman/package.decodificar().2/
+
+‡‡ #workshop_3/Pruebas$_#arbolBase.2
+
+‡%‡ ,local602>
+
+‡.‡ 6.scala/collection/IterableOnceOps#mkString(+2).2/
+
+‡8‡ Aworkshop_3/Pruebas$_#textoBase.21
+
+‡A‡ B!scala/collection/StringOps#`*`().24
+
+·· $workshop_3/Pruebas$_#assertEquals().2
+
+·· local562/
+
+·· scala/collection/SeqOps#size().2
+
+·· !local572/
+
+·"· &scala/collection/SeqOps#size().2'
+ÂÂ scala/Predef.println(+1).2'
+ÊÊ scala/Predef.println(+1).2(
+
+ÊÊ 	scala/StringContext#s().2-
+
+ÊÊ workshop_3/Pruebas$_#total().2.
+
+Ê*Ê 0workshop_3/Pruebas$_#fallos().2-
+
+Ê>Ê Cworkshop_3/Pruebas$_#total().2"
+
+ÊDÊ Escala/Int#`-`(+3).2.
+
+ÊFÊ Lworkshop_3/Pruebas$_#fallos().2.
+
+ÁÁ 	workshop_3/Pruebas$_#fallos().2"
+
+Á	Á 
+scala/Int#`>`(+3).2)
+
+ËË scala/Predef.println(+1).20
+
+ÈÈ  workshop_3/Pruebas$_#resultados.2H
+
+ÈÈ 8scala/collection/StrictOptimizedIterableOps#filterNot().23
+
+ÈÈ #workshop_3/Pruebas$_#TestResult#ok.2K
+
+ÈÈ (;scala/collection/StrictOptimizedIterableOps#zipWithIndex().2;
+
+È)È 0+scala/collection/IterableOnceOps#foreach().2
+
+È8È 9local622
+
+È:È ;local632)
+
+È@È Gscala/Predef.println(+1).2(
+
+ÈHÈ Iscala/StringContext#s().2
+
+ÈLÈ Mlocal632"
+
+ÈMÈ Nscala/Int#`+`(+4).2
+
+ÈTÈ Ulocal6227
+
+ÈVÈ \'workshop_3/Pruebas$_#TestResult#nombre.2
+
+ÈcÈ dlocal6228
+
+ÈeÈ l(workshop_3/Pruebas$_#TestResult#detalle.2)
+
+ÍÍ scala/Predef.println(+1).PZ 9df1d08a3b747f9331a12e7ad54851d9b,
+%%  B
+2
+
+%% 
+scala/Int#b,
+&&  B
+2
+
+&& 
+scala/Int#b,
+''  B
+2
+
+'' 
+scala/Int#b,
+))  B
+2
+
+)) 
+scala/Int#b,
+**  B
+2
+
+** 
+scala/Int#bS
+00 GBE
+2
+
+00 53 scala/collection/immutable/List#scala/Char#b^
+00 RBP
+=:;
+2
+
+00 +
+)scala/collection/IterableFactory#apply().scala/Char#bS
+22 GBE
+2
+
+22 53 scala/collection/immutable/List#scala/Char#b-
+22 !B
+2
+
+22 scala/Char#b;
+22 /
+-
+2
+
+22 
+scala/math/Ordering.Char.b^
+22 "RBP
+=:;
+2
+
+22 "+
+)scala/collection/IterableFactory#apply().scala/Char#b-
+44 !B
+2
+
+44 scala/Char#bS
+55 GBE
+2
+
+55 53 scala/collection/immutable/List#scala/Char#b-
+55 $!B
+2
+
+55 $scala/Char#b;
+55 $/
+-
+2
+
+55 $
+scala/math/Ordering.Char.b-
+5&5 D!B
+2
+
+5&5 Dscala/Char#b;
+5&5 D/
+-
+2
+
+5&5 D
+scala/math/Ordering.Char.b,
+66  B
+2
+
+66 
+scala/Int#b,
+>>  B
+2
+
+>> 
+scala/Int#bS
+?? GBE
+2
+
+?? 53 scala/collection/immutable/List#scala/Char#b-
+?? !B
+2
+
+?? scala/Char#b;
+?? /
+-
+2
+
+?? 
+scala/math/Ordering.Char.b^
+?? "RBP
+=:;
+2
+
+?? "+
+)scala/collection/IterableFactory#apply().scala/Char#b,
+BB  B
+2
+
+BB 
+scala/Int#b-
+CC !B
+2
+
+CC scala/Char#b,
+DD  B
+2
+
+DD 
+scala/Int#bS
+II GBE
+2
+
+II 53 scala/collection/immutable/List#scala/Char#bS
+JJ GBE
+2
+
+JJ 53 scala/collection/immutable/List#scala/Char#b^
+J!J %RBP
+=:;
+2
+
+J!J %+
+)scala/collection/IterableFactory#apply().scala/Char#bS
+KK GBE
+2
+
+KK 53 scala/collection/immutable/List#scala/Char#b^
+K"K &RBP
+=:;
+2
+
+K"K &+
+)scala/collection/IterableFactory#apply().scala/Char#bS
+LL GBE
+2
+
+LL 53 scala/collection/immutable/List#scala/Char#b^
+L#L 'RBP
+=:;
+2
+
+L#L '+
+)scala/collection/IterableFactory#apply().scala/Char#b6
+MM *B(
+2
+
+MM scala/Predef.String#bv
+RR jBh
+2
+
+RR XV scala/collection/immutable/List#20scala/Tuple2#scala/Char#
+scala/Int#bv
+SS jBh
+2
+
+SS XV scala/collection/immutable/List#20scala/Tuple2#scala/Char#
+scala/Int#b^
+SS RBP
+=:;
+2
+
+SS +
+)scala/collection/IterableFactory#apply().scala/Char#bÅ
+S&S *uBs
+=:;
+2
+
+S&S *+
+)scala/collection/IterableFactory#apply().20scala/Tuple2#scala/Char#
+scala/Int#b^
+TT RBP
+=:;
+2
+
+TT +
+)scala/collection/IterableFactory#apply().scala/Char#bP
+UU DBB
+2
+
+UU 20scala/Tuple2#scala/Char#
+scala/Int#bP
+U%U 1DBB
+2
+
+U%U 120scala/Tuple2#scala/Char#
+scala/Int#b=
+WW 1B/
+2
+
+WW scala/Char#
+scala/Int#bm
+WW a
+_
+2
+
+WW OBM
+
+scala/`<:<`.refl().20scala/Tuple2#scala/Char#
+scala/Int#bi
+WW ]B[
+8:6
+2
+
+WW &
+$scala/collection/MapFactory#apply().scala/Char#
+scala/Int#b,
+WW # B
+2
+
+WW #
+scala/Int#bQ
+WW !E
+C
+3B1
+
+scala/Predef.ArrowAssoc().scala/Char#2
+
+WW !b,
+W%W * B
+2
+
+W%W *
+scala/Int#bQ
+W%W (E
+C
+3B1
+
+scala/Predef.ArrowAssoc().scala/Char#2
+
+W%W (b,
+W,W 1 B
+2
+
+W,W 1
+scala/Int#bQ
+W,W /E
+C
+3B1
+
+scala/Predef.ArrowAssoc().scala/Char#2
+
+W,W /b,
+W3W 8 B
+2
+
+W3W 8
+scala/Int#bQ
+W3W 6E
+C
+3B1
+
+scala/Predef.ArrowAssoc().scala/Char#2
+
+W3W 6bS
+XX GBE
+2
+
+XX 53 scala/collection/immutable/List#scala/Char#b-
+XX !B
+2
+
+XX scala/Char#b^
+XX "RBP
+=:;
+2
+
+XX "+
+)scala/collection/IterableFactory#apply().scala/Char#bÅ
+]#] 'uBs
+=:;
+2
+
+]#] '+
+)scala/collection/IterableFactory#apply().20scala/Tuple2#scala/Char#
+scala/Int#bS
+^^ GBE
+2
+
+^^ 53 scala/collection/immutable/List#scala/Char#b-
+^^ !B
+2
+
+^^ scala/Char#b^
+^ ^ $RBP
+=:;
+2
+
+^ ^ $+
+)scala/collection/IterableFactory#apply().scala/Char#bR
+__ FBD
+2
+
+__ 42 scala/collection/immutable/List#
+scala/Int#b,
+__  B
+2
+
+__ 
+scala/Int#b]
+_!_ %QBO
+=:;
+2
+
+_!_ %+
+)scala/collection/IterableFactory#apply().
+scala/Int#b,
+aa  B
+2
+
+aa 
+scala/Int#b-
+bb !B
+2
+
+bb scala/Char#b-
+cc !B
+2
+
+cc scala/Char#bÅ
+r#r 'uBs
+=:;
+2
+
+r#r '+
+)scala/collection/IterableFactory#apply().20scala/Tuple2#scala/Char#
+scala/Int#b,
+tt  B
+2
+
+tt 
+scala/Int#b,
+uu  B
+2
+
+uu 
+scala/Int#b,
+u u 8 B
+2
+
+u u 8
+scala/Int#b,
+u u . B
+2
+
+u u .
+scala/Int#bC
+u u 87
+5
+2
+
+u u 8%#
+!scala/math/Numeric.IntIsIntegral.b,
+vv " B
+2
+
+vv "
+scala/Int#b:
+vv (.
+,
+2
+
+vv (
+scala/math/Ordering.Int.b,
+ww  B
+2
+
+ww 
+scala/Int#b_
+xx SBQ
+2
+
+xx A? scala/collection/immutable/List#Huffman/package.ArbolH#b_
+yy SBQ
+2
+
+yy A? scala/collection/immutable/List#Huffman/package.ArbolH#b0
+
+ÄÄ "B 
+2
+
+ÄÄ 
+scala/Int#bc
+
+ÇÇ UBS
+2
+
+ÇÇ A? scala/collection/immutable/List#Huffman/package.ArbolH#bc
+
+ÑÑ UBS
+2
+
+ÑÑ A? scala/collection/immutable/List#Huffman/package.ArbolH#bÖ
+
+Ö!Ö %wBu
+?:=
+2
+
+Ö!Ö %+
+)scala/collection/IterableFactory#apply().20scala/Tuple2#scala/Char#
+scala/Int#b0
+
+áá "B 
+2
+
+áá 
+scala/Int#b0
+
+àà "B 
+2
+
+àà 
+scala/Int#b0
+
+àà 2"B 
+2
+
+àà 2
+scala/Int#b0
+
+àà &"B 
+2
+
+àà &
+scala/Int#bG
+
+àà 29
+7
+2
+
+àà 2%#
+!scala/math/Numeric.IntIsIntegral.b0
+
+çç "B 
+2
+
+çç 
+scala/Int#bW
+
+éé IBG
+2
+
+éé 53 scala/collection/immutable/List#scala/Char#b1
+
+éé $#B!
+2
+
+éé $scala/Char#b?
+
+éé $1
+/
+2
+
+éé $
+scala/math/Ordering.Char.b1
+
+é&é D#B!
+2
+
+é&é Dscala/Char#b?
+
+é&é D1
+/
+2
+
+é&é D
+scala/math/Ordering.Char.b0
+
+êê "B 
+2
+
+êê 
+scala/Int#bW
+
+ëë IBG
+2
+
+ëë 53 scala/collection/immutable/List#scala/Char#bb
+
+ëë "TBR
+?:=
+2
+
+ëë "+
+)scala/collection/IterableFactory#apply().scala/Char#b0
+
+ìì "B 
+2
+
+ìì 
+scala/Int#b:
+
+ôô ,B*
+2
+
+ôô scala/Predef.String#b1
+
+ö"ö 3#B!
+2
+
+ö"ö 3scala/Char#b0
+
+õõ "B 
+2
+
+õõ 
+scala/Int#bb
+
+û#û 'TBR
+?:=
+2
+
+û#û '+
+)scala/collection/IterableFactory#apply().scala/Char#b:
+
+üü ,B*
+2
+
+üü scala/Predef.String#b:
+
+°° ,B*
+2
+
+°° scala/Predef.String#b:
+
+®® ,B*
+2
+
+®® scala/Predef.String#b1
+
+©"© 3#B!
+2
+
+©"© 3scala/Char#b0
+
+™™ "B 
+2
+
+™™ 
+scala/Int#b`
+
+¨¨ RBP
+2
+
+¨¨ >< scala/collection/immutable/List#Huffman/package.Bit#bb
+
+¨"¨ &TBR
+?:=
+2
+
+¨"¨ &+
+)scala/collection/IterableFactory#apply().scala/Char#be
+
+¨2¨ 6WBU
+?:=
+2
+
+¨2¨ 6+
+)scala/collection/IterableFactory#apply().scala/Nothing#bb
+
+≠$≠ (TBR
+?:=
+2
+
+≠$≠ (+
+)scala/collection/IterableFactory#apply().scala/Char#b:
+
+ÆÆ ,B*
+2
+
+ÆÆ scala/Predef.String#bV
+
+µµ HBF
+2
+
+µµ 42scala/collection/immutable/Set#scala/Char#b1
+
+µµ #B!
+2
+
+µµ scala/Char#b1
+
+µµ #B!
+2
+
+µµ scala/Char#b1
+
+µ!µ ,#B!
+2
+
+µ!µ ,scala/Char#b`
+
+ππ RBP
+2
+
+ππ >< scala/collection/immutable/List#Huffman/package.Bit#b`
+
+∫∫ RBP
+2
+
+∫∫ >< scala/collection/immutable/List#Huffman/package.Bit#b≠
+
+¿¿ ûBõ
+?:=
+2
+
+¿¿ +
+)scala/collection/IterableFactory#apply().XVscala/Tuple2#scala/Char#42 scala/collection/immutable/List#
+scala/Int#ba
+
+¿#¿ 'SBQ
+?:=
+2
+
+¿#¿ '+
+)scala/collection/IterableFactory#apply().
+scala/Int#ba
+
+¿3¿ 7SBQ
+?:=
+2
+
+¿3¿ 7+
+)scala/collection/IterableFactory#apply().
+scala/Int#b≠
+
+¡¡ ûBõ
+?:=
+2
+
+¡¡ +
+)scala/collection/IterableFactory#apply().XVscala/Tuple2#scala/Char#42 scala/collection/immutable/List#
+scala/Int#ba
+
+¡#¡ 'SBQ
+?:=
+2
+
+¡#¡ '+
+)scala/collection/IterableFactory#apply().
+scala/Int#ba
+
+¡3¡ 7SBQ
+?:=
+2
+
+¡3¡ 7+
+)scala/collection/IterableFactory#apply().
+scala/Int#b0
+
+√√ "B 
+2
+
+√√ 
+scala/Int#b`
+
+∆∆ RBP
+2
+
+∆∆ >< scala/collection/immutable/List#Huffman/package.Bit#b`
+
+«« RBP
+2
+
+«« >< scala/collection/immutable/List#Huffman/package.Bit#bW
+
+ŒŒ IBG
+2
+
+ŒŒ 53 scala/collection/immutable/List#scala/Char#b1
+
+ŒŒ  #B!
+2
+
+ŒŒ  scala/Char#b1
+
+ŒŒ #B!
+2
+
+ŒŒ scala/Char#b?
+
+ŒŒ  1
+/
+2
+
+ŒŒ  
+scala/math/Ordering.Char.b1
+
+Œ"Œ .#B!
+2
+
+Œ"Œ .scala/Char#b?
+
+Œ"Œ .1
+/
+2
+
+Œ"Œ .
+scala/math/Ordering.Char.b0
+
+–– "B 
+2
+
+–– 
+scala/Int#b`
+
+–– RBP
+2
+
+–– >< scala/collection/immutable/List#Huffman/package.Bit#bù
+
+““ éBã
+?:=
+2
+
+““ +
+)scala/collection/IterableFactory#apply().HFscala/Tuple2#scala/Char#$¢!scala/collection/immutable/Nil.b0
+
+””  "B 
+2
+
+””  
+scala/Int#b0
+
+”” "B 
+2
+
+”” 
+scala/Int#bG
+
+””  9
+7
+2
+
+””  %#
+!scala/math/Numeric.IntIsIntegral.b`
+
+⁄⁄ RBP
+2
+
+⁄⁄ >< scala/collection/immutable/List#Huffman/package.Bit#bb
+
+€(€ ,TBR
+?:=
+2
+
+€(€ ,+
+)scala/collection/IterableFactory#apply().scala/Char#b:
+
+‹‹ ,B*
+2
+
+‹‹ scala/Predef.String#b`
+
+ﬁﬁ RBP
+2
+
+ﬁﬁ >< scala/collection/immutable/List#Huffman/package.Bit#bb
+
+ﬁ(ﬁ ,TBR
+?:=
+2
+
+ﬁ(ﬁ ,+
+)scala/collection/IterableFactory#apply().scala/Char#be
+
+ﬁ8ﬁ <WBU
+?:=
+2
+
+ﬁ8ﬁ <+
+)scala/collection/IterableFactory#apply().scala/Nothing#b1
+
+ﬂ*ﬂ ;#B!
+2
+
+ﬂ*ﬂ ;scala/Char#b7
+
+‡‡ )B'
+2
+
+‡‡ java/lang/String#bC
+
+‡8‡ A5
+3
+!
+scala/Predef.augmentString().2
+
+‡8‡ Ab0
+
+·· "B 
+2
+
+·· 
+scala/Int#b1
+
+ÈÈ 0#B!
+2
+
+ÈÈ 0scala/Unit#
