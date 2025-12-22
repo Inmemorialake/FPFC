@@ -69,4 +69,3 @@ Para más detalles sobre el proyecto final, consulta el [Informe](Project/Inform
 ## 📅 Última Actualización
 
 Diciembre 2025
-```
